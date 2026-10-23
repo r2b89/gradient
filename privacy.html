@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gradient Privacy Policy</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --text: #1b1f24;
+      --muted: #5f6b7a;
+      --line: #dde1e6;
+      --accent: #1f6feb;
+      --accent-text: #ffffff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e1116;
+        --panel: #161b22;
+        --text: #e6edf3;
+        --muted: #8b96a3;
+        --line: #2b313b;
+        --accent: #2f81f7;
+        --accent-text: #ffffff;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    header h1 {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    nav.pages {
+      display: flex;
+      gap: 4px;
+    }
+
+    nav.pages a {
+      padding: 2px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    nav.pages a:hover {
+      border-color: var(--accent);
+    }
+
+    nav.pages a[aria-current] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-text);
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 8px 16px 48px;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin: 24px 0 2px;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin: 24px 0 4px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .summary {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 14px 0;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    td,
+    th {
+      text-align: left;
+      vertical-align: top;
+      padding: 6px 8px 6px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    @media (max-width: 560px) {
+
+      table,
+      tbody,
+      tr,
+      td,
+      th {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      td {
+        border: 0;
+        padding: 2px 0;
+      }
+
+      tr {
+        border-bottom: 1px solid var(--line);
+        padding: 6px 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Gradient</h1>
+    <nav class="pages" aria-label="Builders"><a href="route-builder.html">Routes</a><a
+        href="workout-builder.html">Workouts</a><a href="rides.html">Rides</a><a href="privacy.html"
+        aria-current="page">Privacy</a></nav>
+    <p>What the app and these tools do with your data.</p>
+  </header>
+  <main>
+    <h2>Privacy Policy</h2>
+    <p class="muted">Effective: 2026-10-23 · r2b89</p>
+
+    <p>This policy covers <b>Gradient</b>, the indoor cycling app for Android and iPhone ("the app"), and the web tools
+      on this site: the route builder, the workout builder and the Rides page ("the tools").</p>
+
+    <div class="summary">
+      <b>In short:</b> the app keeps everything on your phone and has no internet access. The workout builder and the
+      Rides page keep everything in your browser. Only the route builder talks to outside services (maps, road routing,
+      elevations, place search), and only with what it needs to draw your route. The developer runs no servers and
+      receives none of your data.
+    </div>
+
+    <h3>The app</h3>
+    <p>Gradient reads your smart trainer, power meter, cadence sensor and heart rate monitor, sets the trainer's
+      resistance for workouts and routes, and records your rides. On your phone it keeps:</p>
+    <ul>
+      <li><b>Your rides</b>: per second, power, cadence, speed, distance, heart rate and (on routes) elevation, saved as
+        FIT files in the app's folder.</li>
+      <li><b>Your settings</b>: FTP, maximum heart rate, weight, bike weight and training zones.</li>
+      <li><b>Workouts and routes</b> you add, and the sensors you chose.</li>
+    </ul>
+    <p>The app has no internet access, so none of this can leave your phone through it. You can copy the ride files to
+      other apps or services yourself (for example with a file manager). Uninstalling the app deletes all of it, so save
+      the ride files elsewhere first if you want to keep them. Your phone may include the app's data in its own backup,
+      under your Google or Apple account, as it does for other apps.</p>
+    <p><b>Bluetooth</b> is used only to connect to your fitness sensors and trainer. The app doesn't use Bluetooth to
+      find
+      your location (on Android it's declared as never used for location) and doesn't collect information about other
+      devices nearby beyond showing fitness sensors' names in its sensor list.</p>
+
+    <h3>The web tools</h3>
+    <p>The tools run in your browser. What you make in them (routes, workouts, the rides you open) is kept in your
+      browser's own storage on your computer (localStorage, IndexedDB), and the files you export are saved where you
+      choose. Clearing the site's data in your browser deletes it.</p>
+    <ul>
+      <li><b>Workout builder</b>: sends nothing anywhere.</li>
+      <li><b>Rides page</b>: the FIT files you open are read and kept in your browser only; nothing is uploaded.</li>
+      <li><b>Route builder</b>: uses these services, which receive your requests (and, like any website, your IP
+        address and browser's details) under their own privacy policies:</li>
+    </ul>
+    <table>
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>What it receives</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy">OpenStreetMap</a> and
+            <a href="https://opentopomap.org/about">OpenTopoMap</a>
+          </td>
+          <td>the map tiles of the area you look at</td>
+          <td>the map</td>
+        </tr>
+        <tr>
+          <td><a href="https://brouter.de/">BRouter</a></td>
+          <td>your waypoints' coordinates</td>
+          <td>the roads between them</td>
+        </tr>
+        <tr>
+          <td><a href="https://open-meteo.com/en/terms">Open-Meteo</a></td>
+          <td>coordinates along your route</td>
+          <td>their elevation</td>
+        </tr>
+        <tr>
+          <td><a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy">Nominatim</a> (OpenStreetMap)</td>
+          <td>the place names you search for</td>
+          <td>finding them on the map</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.cloudflare.com/privacypolicy/">cdnjs</a> (Cloudflare)</td>
+          <td>a request for the map library</td>
+          <td>loading the page</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>A route is a place you choose to ride virtually; the route builder doesn't ask for or use your own location.</p>
+
+    <h3>What neither does</h3>
+    <ul>
+      <li>No accounts, no analytics, no advertising, no tracking, no cookies of their own, no advertising ID.</li>
+      <li>No location: the app doesn't use GPS, and routes are ridden virtually.</li>
+      <li>Your data isn't sold or shared with anyone.</li>
+    </ul>
+
+    <h3>Health information</h3>
+    <p>Heart rate and power are fitness data. Gradient is not a medical device and doesn't diagnose, treat or prevent
+      any condition. Heart rate training targets are estimates; ride within your limits.</p>
+
+    <h3>Children</h3>
+    <p>The app and the tools aren't directed at children under 13.</p>
+
+    <h3>Changes and contact</h3>
+    <p>If this policy changes, the new version will be posted on this page with a new effective date. </p>
+  </main>
+</body>
+
+</html>
