@@ -249,6 +249,14 @@
       margin: 6px 0 0;
     }
 
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
     #status {
       min-height: 18px;
       font-size: 13px;
@@ -511,6 +519,9 @@
           <button id="export" class="primary" disabled>Export CSV</button>
           <button id="export-gpx" disabled>Export GPX</button>
         </div>
+        <label class="check"><input id="with-tiles" type="checkbox" checked> Map tiles for the app's map page</label>
+        <p class="hint">The area around the route from the map shown here, darkened, at the scales the app's map page shows it
+          (some 30–60 tiles, a few hundred KB in the CSV). Without them the page shows the route alone.</p>
         <p class="hint">Run it with <code>trainer --workout route.csv</code>, or drop the file on the trainer's window.
         </p>
       </section>
@@ -1089,8 +1100,121 @@
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     }
-    $('export').addEventListener('click', () => download(csv(), 'csv', 'text/csv'));
+    $('export').addEventListener('click', async () => {
+      let text = csv();
+      if (!text) return;
+      if ($('with-tiles').checked && state.route[0].lat != null) {
+        $('export').disabled = true;
+        status('Fetching the map tiles…');
+        try {
+          let tiles = await mapTiles();
+          text += tiles.lines.join('\n') + '\n';
+          status(`Exported with ${tiles.count} map tiles (${Math.round(tiles.bytes / 1024)} KB)${tiles.skipped ? `, ${tiles.skipped} left out (too big)` : ''}.`);
+        } catch (error) {
+          status(`Exported without map tiles: ${error.message}`, true);
+        } finally {
+          $('export').disabled = false;
+        }
+      }
+      download(text, 'csv', 'text/csv');
+    });
     $('export-gpx').addEventListener('click', () => download(gpx(), 'gpx', 'application/gpx+xml'));
+
+    const APP_MAP_BOXES = [{width: 320, height: 354}, {width: 600, height: 410}];
+    const TILE_LINE = 900;
+    const TILE_BUDGET = 1200 * 1024;
+    const CLOSE_TILES = 48;
+    const CLOSE_LEVEL_MAX = 17;
+    const TILE_QUALITY = 0.45;
+
+    function mercator(lat, lon) {
+      let phi = Math.min(Math.max(lat, -85.0511287798), 85.0511287798) * Math.PI / 180;
+      return [(lon + 180) / 360 * 256, (1 - Math.log(Math.tan(phi) + 1 / Math.cos(phi)) / Math.PI) / 2 * 256];
+    }
+
+    function appTileKeys(route, maxZoom) {
+      let world = route.map(p => mercator(p.lat, p.lon)), xs = world.map(w => w[0]), ys = world.map(w => w[1]);
+      let cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+      let keys = new Map(), base = 0;
+      let cover = (z, centers, hw, hh, into) => {
+        let n = 2 ** z;
+        for (let [wx, wy] of centers) {
+          let px = wx * n, py = wy * n;
+          for (let ty = Math.max(0, Math.floor((py - hh) / 256)); ty <= Math.min(n - 1, Math.floor((py + hh) / 256)); ty++) {
+            for (let tx = Math.floor((px - hw) / 256); tx <= Math.floor((px + hw) / 256); tx++) {
+              let x = ((tx % n) + n) % n;
+              into.set(`${z}/${x}/${ty}`, {z, x, y: ty});
+            }
+          }
+        }
+        return into;
+      };
+      for (let box of APP_MAP_BOXES) {
+        let scale = Math.min(box.width / (Math.max(...xs) - Math.min(...xs)), box.height / (Math.max(...ys) - Math.min(...ys)));
+        if (!Number.isFinite(scale)) continue;
+        let zoom = Math.min(Math.max(Math.log2(scale), 0), 24), z = Math.min(Math.round(zoom), maxZoom);
+        let k = 2 ** (zoom - z);
+        cover(z, [[cx, cy]], box.width / 2 / k + 1, box.height / 2 / k + 1, keys);
+        base = Math.max(base, z);
+      }
+      let hw = APP_MAP_BOXES[0].width / 2 + 1, hh = APP_MAP_BOXES[0].height / 2 + 1, top = Math.min(maxZoom, CLOSE_LEVEL_MAX);
+      let band = z => z <= top ? cover(z, world, hw, hh, new Map()) : null;
+      let z = base + 2, tiles = band(z), levels = [];
+      if (!tiles || tiles.size > CLOSE_TILES) tiles = band(z = base + 1);
+      for (; tiles && tiles.size <= CLOSE_TILES && levels.length < 2; tiles = band(z += 2)) {
+        tiles.forEach((key, name) => keys.set(name, key));
+        levels.push(z);
+      }
+      return Object.assign([...keys.values()], {levels});
+    }
+
+    async function darkTile(blob) {
+      let image = await createImageBitmap(blob);
+      let canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 256;
+      let g = canvas.getContext('2d');
+      g.drawImage(image, 0, 0, 256, 256);
+      let data = g.getImageData(0, 0, 256, 256), px = data.data;
+      for (let i = 0; i < px.length; i += 4) {
+        let r = px[i], gr = px[i + 1], b = px[i + 2], shift = 255 - Math.max(r, gr, b) - Math.min(r, gr, b);
+        r += shift; gr += shift; b += shift;
+        let grey = (r + gr + b) / 3;
+        px[i] = (grey + (r - grey) * 0.45) * 0.42;
+        px[i + 1] = (grey + (gr - grey) * 0.45) * 0.42;
+        px[i + 2] = (grey + (b - grey) * 0.45) * 0.46;
+      }
+      g.putImageData(data, 0, 0);
+      let jpeg = await new Promise(done => canvas.toBlob(done, 'image/jpeg', TILE_QUALITY));
+      let bytes = new Uint8Array(await jpeg.arrayBuffer()), text = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) text += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      return {base64: btoa(text), bytes: bytes.length};
+    }
+
+    async function mapTiles() {
+      let route = state.route.filter(p => p.lat != null);
+      if (route.length < 2) throw new Error('the route has no lat/lon');
+      let layer = Object.values(layers).find(l => map.hasLayer(l));
+      let attribution = layer.getAttribution().replace(/<[^>]*>/g, '').replace(/&copy;/g, '©').replace(/\b(Map data|Style) /g, '').replace(/ \| /g, ', ')
+        .replace(/\s+/g, ' ').trim();
+      let keys = appTileKeys(route, layer.options.maxZoom);
+      let tiles = await Promise.all(keys.map(async key => {
+        let subdomains = layer.options.subdomains, s = subdomains[Math.abs(key.x + key.y) % subdomains.length];
+        let url = L.Util.template(layer._url, {...layer.options, s, x: key.x, y: key.y, z: key.z, r: ''});
+        let response;
+        try {response = await fetch(url, {mode: 'cors'});} catch (e) {throw new Error(`the map's server doesn't let the page read its tiles (${new URL(url).host})`);}
+        if (!response.ok) throw new Error(`tile ${key.z}/${key.x}/${key.y}: HTTP ${response.status}`);
+        return {...key, ...await darkTile(await response.blob())};
+      }));
+      tiles.sort((a, b) => a.z - b.z);
+      let lines = [`# map: ${attribution}`, ...(keys.levels.length ? [`# map levels: ${keys.levels.join(' ')}`] : [])], bytes = 0, count = 0, skipped = 0;
+      for (let t of tiles) {
+        if (bytes + t.bytes > TILE_BUDGET) {skipped++; continue;}
+        bytes += t.bytes;
+        count++;
+        for (let i = 0; i < t.base64.length; i += TILE_LINE) lines.push(`# tile ${t.z}/${t.x}/${t.y}: ${t.base64.slice(i, i + TILE_LINE)}`);
+      }
+      return {lines, count, bytes, skipped};
+    }
 
 
     function remember() {
@@ -1234,7 +1358,7 @@
       },
       importText,
       ready: () => rebuild(),
-      csv, gpx, stats, state
+      csv, gpx, stats, state, mapTiles, appTileKeys
     };
 
     restore();
