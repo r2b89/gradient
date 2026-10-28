@@ -8,6 +8,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Route Builder</title>
+  <meta name="description"
+    content="Free cycling route planner: draw a route on the map, follow roads, see the grades, and export a GPX file for your Garmin, Wahoo, Hammerhead Karoo or other bike computer, or a CSV for the indoor trainer.">
+  <meta property="og:title" content="Route Builder: cycling routes for bike computers and indoor trainers">
+  <meta property="og:description"
+    content="Draw a route on the map and get a GPX for Garmin, Wahoo, Karoo and other cycling computers, with elevation and grades. Free, in the browser, no account.">
+  <meta property="og:type" content="website">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
@@ -431,7 +437,7 @@
     <nav class="pages" aria-label="Builders"><a href="route-builder.html" aria-current="page">Routes</a><a
         href="workout-builder.html">Workouts</a><a href="rides.html">Rides</a><a href="privacy.html">Privacy</a></nav>
     <p>Click the map to add waypoints, drag them to move, right-click one to remove it. Export a route for the trainer
-      app.</p>
+      app, or a GPX for your bike computer (Garmin, Wahoo, Karoo, …).</p>
   </header>
   <main>
     <div id="map" aria-label="Map"></div>
@@ -524,6 +530,9 @@
           (some 30–60 tiles, a few hundred KB in the CSV). Without them the page shows the route alone.</p>
         <p class="hint">Run it with <code>trainer --workout route.csv</code>, or drop the file on the trainer's window.
         </p>
+        <p class="hint">The GPX is a track with elevation for a cycling computer (Garmin Edge, Wahoo ELEMNT, Hammerhead
+          Karoo, Bryton, …) or for Strava, Komoot and RideWithGPS.<button class="info" data-info="gpx-info"
+            title="How to load it" aria-label="About loading the GPX on a bike computer">i</button></p>
       </section>
     </aside>
   </main>
@@ -606,6 +615,43 @@
     </table>
     <p>A taller or heavier rider has a larger CdA than the typical values here. The trainer gets ρ·CdA
       with the grade (simulation), and the speed on the road follows from it.</p>
+  </dialog>
+  <dialog id="gpx-info" aria-labelledby="gpx-title">
+    <button class="close" aria-label="Close">✕</button>
+    <h3 id="gpx-title">The route on your bike computer</h3>
+    <p>Export GPX gives a standard GPX 1.1 track: the route as drawn, a point every "Point every" meters, with the
+      smoothed elevation, so the computer shows the same climbs and grades as the profile here. Any device or app
+      that takes GPX can follow it.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Device or app</th>
+          <th>Where to load it</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Garmin Edge</td>
+          <td>Garmin Connect: Training &amp; Planning → Courses → Import, then send it to the device</td>
+        </tr>
+        <tr>
+          <td>Wahoo ELEMNT</td>
+          <td>ELEMNT app: Routes → import the file, or open the file with the app on the phone</td>
+        </tr>
+        <tr>
+          <td>Hammerhead Karoo</td>
+          <td>Hammerhead dashboard: Routes → Import, it syncs to the Karoo</td>
+        </tr>
+        <tr>
+          <td>Bryton, Coros, iGPSPORT, …</td>
+          <td>The brand's phone app, in its routes or courses section</td>
+        </tr>
+        <tr>
+          <td>Strava, Komoot, RideWithGPS</td>
+          <td>Import the GPX as a route, then sync it to the computer from there</td>
+        </tr>
+      </tbody>
+    </table>
   </dialog>
   <footer>
     <div id="profile-head"><span id="hover-info">Elevation profile</span><span class="legend" id="legend"></span></div>
