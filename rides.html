@@ -3,714 +3,1121 @@
   Copyright (c) 2026 Alex Kasianov. All rights reserved.
 -->
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ride Results</title>
-<style>
-  :root {
-    --bg: #f5f6f8; --panel: #ffffff; --text: #1b1f24; --muted: #5f6b7a; --line: #dde1e6;
-    --accent: #1f6feb; --accent-text: #ffffff; --field: #ffffff; --danger: #c62828;
-    --chart-bg: #ffffff; --chart-grid: #e6e9ed; --selected: rgba(31, 111, 235, .08); --range: rgba(31, 111, 235, .14);
-    --hr: #e5484d; --cadence: #8e4ec6; --speed: #12a594; --elevation: #9aa4b2; --cursor: #1b1f24;
-  }
-  @media (prefers-color-scheme: dark) {
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="icons/site.webmanifest">
+  <meta name="theme-color" content="#0b0f14">
+  <title>Ride Results</title>
+  <style>
     :root {
-      --bg: #0e1116; --panel: #161b22; --text: #e6edf3; --muted: #8b96a3; --line: #2b313b;
-      --accent: #2f81f7; --accent-text: #ffffff; --field: #0d1117; --danger: #ff6b6b;
-      --chart-bg: #0d1117; --chart-grid: #222831; --selected: rgba(47, 129, 247, .14); --range: rgba(47, 129, 247, .2);
-      --hr: #ff6369; --cadence: #b78af0; --speed: #3dd6c2; --elevation: #5c6673; --cursor: #e6edf3;
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --text: #1b1f24;
+      --muted: #5f6b7a;
+      --line: #dde1e6;
+      --accent: #1f6feb;
+      --accent-text: #ffffff;
+      --field: #ffffff;
+      --danger: #c62828;
+      --chart-bg: #ffffff;
+      --chart-grid: #e6e9ed;
+      --selected: rgba(31, 111, 235, .08);
+      --range: rgba(31, 111, 235, .14);
+      --hr: #e5484d;
+      --cadence: #8e4ec6;
+      --speed: #12a594;
+      --elevation: #9aa4b2;
+      --cursor: #1b1f24;
     }
-  }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
-  body {
-    background: var(--bg); color: var(--text);
-    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    display: grid; grid-template-rows: auto 1fr; height: 100vh;
-  }
-  header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
-  header h1 { font-size: 16px; margin: 0; }
-  header p { margin: 0; color: var(--muted); font-size: 13px; }
-  nav.pages { display: flex; gap: 4px; }
-  nav.pages a { padding: 2px 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 13px; }
-  nav.pages a:hover { border-color: var(--accent); }
-  nav.pages a[aria-current] { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-  main { display: grid; grid-template-columns: 1fr 340px; min-height: 0; }
-  .work { overflow-y: auto; padding: 12px 16px 24px; min-width: 0; }
-  aside { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; padding: 12px 16px 24px; }
-  section { padding: 10px 0; border-bottom: 1px solid var(--line); }
-  section:last-child { border-bottom: 0; }
-  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
-  label { display: block; font-size: 13px; margin: 6px 0 2px; color: var(--muted); }
-  input, button { font: inherit; color: var(--text); }
-  input[type=number] { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--field); }
-  input.invalid { border-color: var(--danger); }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  button { padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--field); cursor: pointer; }
-  button:hover { border-color: var(--accent); }
-  button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
-  .buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .hint { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
-  #status { min-height: 18px; font-size: 13px; color: var(--muted); margin-top: 6px; }
-  #status.error { color: var(--danger); }
-  #drop { border: 2px dashed var(--line); border-radius: 8px; padding: 14px; text-align: center; color: var(--muted); font-size: 13px; }
-  #drop.over { border-color: var(--accent); background: var(--selected); }
-  #rides { display: flex; flex-direction: column; gap: 4px; }
-  .ride { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; padding: 6px 8px; border: 1px solid transparent; border-radius: 6px; cursor: pointer; }
-  .ride:hover { border-color: var(--line); }
-  .ride.selected { background: var(--selected); border-color: var(--accent); }
-  .ride b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ride span { color: var(--muted); font-size: 12px; grid-column: 1; }
-  .ride button { grid-row: span 2; align-self: center; padding: 2px 7px; font-size: 13px; }
-  #week { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-  #week b { color: var(--text); }
-  #empty { color: var(--muted); padding: 40px 6px; text-align: center; }
-  #empty b { color: var(--text); display: block; font-size: 16px; margin-bottom: 6px; }
-  #ride-head h2 { font-size: 18px; text-transform: none; letter-spacing: 0; color: var(--text); margin: 0; }
-  #ride-head p { margin: 2px 0 10px; color: var(--muted); font-size: 13px; }
-  .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px 12px; }
-  .stat b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .stat span { color: var(--muted); font-size: 12px; }
-  #chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: 13px; color: var(--muted); min-height: 20px; margin: 14px 0 4px; }
-  #chart-head b { color: var(--text); font-variant-numeric: tabular-nums; }
-  canvas#chart { width: 100%; display: block; background: var(--chart-bg); border: 1px solid var(--line); border-radius: 6px; touch-action: none; cursor: crosshair; }
-  #range { margin-top: 8px; padding: 8px 10px; border: 1px solid var(--accent); border-radius: 6px; background: var(--selected); display: none; }
-  #range.shown { display: block; }
-  #range .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; }
-  .blocks { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
-  .zone { display: grid; grid-template-columns: 124px 1fr 72px; gap: 6px; align-items: center; font-size: 12px; margin: 3px 0; }
-  .zone .bar { height: 12px; border-radius: 3px; background: var(--chart-grid); overflow: hidden; }
-  .zone .bar i { display: block; height: 100%; }
-  .zone span:last-child { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
-  td, th { padding: 3px 4px; text-align: right; border-bottom: 1px solid var(--line); }
-  th { color: var(--muted); font-weight: 500; font-size: 12px; }
-  td:first-child, th:first-child { text-align: left; }
-  @media (max-width: 820px) {
-    body { height: auto; }
-    main { grid-template-columns: 1fr; }
-    aside { border-left: 0; border-top: 1px solid var(--line); order: -1; }
-    .blocks { grid-template-columns: 1fr; }
-  }
-</style>
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e1116;
+        --panel: #161b22;
+        --text: #e6edf3;
+        --muted: #8b96a3;
+        --line: #2b313b;
+        --accent: #2f81f7;
+        --accent-text: #ffffff;
+        --field: #0d1117;
+        --danger: #ff6b6b;
+        --chart-bg: #0d1117;
+        --chart-grid: #222831;
+        --selected: rgba(47, 129, 247, .14);
+        --range: rgba(47, 129, 247, .2);
+        --hr: #ff6369;
+        --cadence: #b78af0;
+        --speed: #3dd6c2;
+        --elevation: #5c6673;
+        --cursor: #e6edf3;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    header h1 {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    nav.pages {
+      display: flex;
+      gap: 4px;
+    }
+
+    nav.pages a {
+      padding: 2px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    nav.pages a:hover {
+      border-color: var(--accent);
+    }
+
+    nav.pages a[aria-current] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-text);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      min-height: 0;
+    }
+
+    .work {
+      overflow-y: auto;
+      padding: 12px 16px 24px;
+      min-width: 0;
+    }
+
+    aside {
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      overflow-y: auto;
+      padding: 12px 16px 24px;
+    }
+
+    section {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section:last-child {
+      border-bottom: 0;
+    }
+
+    h2 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin: 0 0 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin: 6px 0 2px;
+      color: var(--muted);
+    }
+
+    input,
+    button {
+      font: inherit;
+      color: var(--text);
+    }
+
+    input[type=number] {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--field);
+    }
+
+    input.invalid {
+      border-color: var(--danger);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    button {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--field);
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 6px 0 0;
+    }
+
+    #status {
+      min-height: 18px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    #status.error {
+      color: var(--danger);
+    }
+
+    #drop {
+      border: 2px dashed var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    #drop.over {
+      border-color: var(--accent);
+      background: var(--selected);
+    }
+
+    #rides {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .ride {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0 8px;
+      padding: 6px 8px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .ride:hover {
+      border-color: var(--line);
+    }
+
+    .ride.selected {
+      background: var(--selected);
+      border-color: var(--accent);
+    }
+
+    .ride b {
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ride span {
+      color: var(--muted);
+      font-size: 12px;
+      grid-column: 1;
+    }
+
+    .ride button {
+      grid-row: span 2;
+      align-self: center;
+      padding: 2px 7px;
+      font-size: 13px;
+    }
+
+    #week {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    #week b {
+      color: var(--text);
+    }
+
+    #empty {
+      color: var(--muted);
+      padding: 40px 6px;
+      text-align: center;
+    }
+
+    #empty b {
+      color: var(--text);
+      display: block;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    #ride-head h2 {
+      font-size: 18px;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text);
+      margin: 0;
+    }
+
+    #ride-head p {
+      margin: 2px 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+      gap: 8px 12px;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    #chart-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 4px 12px;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 20px;
+      margin: 14px 0 4px;
+    }
+
+    #chart-head b {
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    canvas#chart {
+      width: 100%;
+      display: block;
+      background: var(--chart-bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    #range {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--selected);
+      display: none;
+    }
+
+    #range.shown {
+      display: block;
+    }
+
+    #range .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .blocks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .zone {
+      display: grid;
+      grid-template-columns: 124px 1fr 72px;
+      gap: 6px;
+      align-items: center;
+      font-size: 12px;
+      margin: 3px 0;
+    }
+
+    .zone .bar {
+      height: 12px;
+      border-radius: 3px;
+      background: var(--chart-grid);
+      overflow: hidden;
+    }
+
+    .zone .bar i {
+      display: block;
+      height: 100%;
+    }
+
+    .zone span:last-child {
+      text-align: right;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    td,
+    th {
+      padding: 3px 4px;
+      text-align: right;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 12px;
+    }
+
+    td:first-child,
+    th:first-child {
+      text-align: left;
+    }
+
+    @media (max-width: 820px) {
+      body {
+        height: auto;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        order: -1;
+      }
+
+      .blocks {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<header>
-  <h1>Ride Results</h1>
-  <nav class="pages" aria-label="Builders"><a href="route-builder.html">Routes</a><a href="workout-builder.html">Workouts</a><a href="rides.html" aria-current="page">Rides</a></nav>
-  <p>Your rides from the trainer app (FIT files in its rides folder): numbers, graphs, zones and best efforts.</p>
-</header>
-<main>
-  <div class="work">
-    <div id="empty"><b>No ride open</b>Add the FIT files the trainer app saved (on the right): the computer's
-      <code>~/.mfd-trainer/rides</code>, or the phone's rides folder (Files app: On My iPhone → Gradient → rides).</div>
-    <div id="ride" hidden>
-      <div id="ride-head"><h2 id="r-name"></h2><p id="r-when"></p></div>
-      <div class="stats" id="r-stats"></div>
-      <div id="chart-head"><span id="chart-info">Hover for the values; drag across the graphs for the numbers of that part.</span><span id="chart-values"></span></div>
-      <canvas id="chart" aria-label="The ride's graphs"></canvas>
-      <div id="range">
-        <div class="top"><b id="range-title"></b><button id="range-clear" title="Esc">Clear</button></div>
-        <div class="stats" id="range-stats"></div>
+  <header>
+    <h1>Ride Results</h1>
+    <nav class="pages" aria-label="Builders"><a href="index.html">Routes</a><a
+        href="workout-builder.html">Workouts</a><a href="rides.html" aria-current="page">Rides</a><a href="privacy.html">Privacy</a></nav>
+    <p>Your rides from the trainer app (FIT files in its rides folder): numbers, graphs, zones and best efforts.</p>
+  </header>
+  <main>
+    <div class="work">
+      <div id="empty"><b>No ride open</b>Add the FIT files the trainer app saved (on the right): the computer's
+        <code>~/.mfd-trainer/rides</code>, or the phone's rides folder (Files app: On My iPhone → Gradient → rides).
       </div>
-      <div class="blocks">
-        <div><h2>Time in power zones</h2><div id="power-zones"></div></div>
-        <div><h2>Time in heart rate zones</h2><div id="heart-zones"></div></div>
-      </div>
-      <div class="blocks">
-        <div><h2>Best efforts</h2><table id="bests"></table><p class="hint" id="ftp-estimate"></p></div>
-        <div><h2>Laps</h2><table id="laps"></table></div>
+      <div id="ride" hidden>
+        <div id="ride-head">
+          <h2 id="r-name"></h2>
+          <p id="r-when"></p>
+        </div>
+        <div class="stats" id="r-stats"></div>
+        <div id="chart-head"><span id="chart-info">Hover for the values; drag across the graphs for the numbers of that
+            part.</span><span id="chart-values"></span></div>
+        <canvas id="chart" aria-label="The ride's graphs"></canvas>
+        <div id="range">
+          <div class="top"><b id="range-title"></b><button id="range-clear" title="Esc">Clear</button></div>
+          <div class="stats" id="range-stats"></div>
+        </div>
+        <div class="blocks">
+          <div>
+            <h2>Time in power zones</h2>
+            <div id="power-zones"></div>
+          </div>
+          <div>
+            <h2>Time in heart rate zones</h2>
+            <div id="heart-zones"></div>
+          </div>
+        </div>
+        <div class="blocks">
+          <div>
+            <h2>Best efforts</h2>
+            <table id="bests"></table>
+            <p class="hint" id="ftp-estimate"></p>
+          </div>
+          <div>
+            <h2>Laps</h2>
+            <table id="laps"></table>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-  <aside>
-    <section>
-      <h2>Add rides</h2>
-      <div id="drop">Drop FIT files here, or<div class="buttons" style="justify-content:center"><button id="pick" class="primary">Choose files…</button></div></div>
-      <input id="file" type="file" accept=".fit,.FIT" multiple hidden>
-      <div id="status" role="status"></div>
-    </section>
-    <section>
-      <h2>You</h2>
-      <div class="row">
-        <div><label for="ftp">FTP (W)</label><input id="ftp" type="number" min="50" max="600" step="5" value="250"></div>
-        <div><label for="max-hr">Max heart rate</label><input id="max-hr" type="number" min="100" max="240" step="1" value="185"></div>
-      </div>
-      <p class="hint">For the zones, IF and TSS: as in the trainer's settings (page 6).</p>
-    </section>
-    <section>
-      <h2>History</h2>
-      <div id="week"></div>
-      <div id="rides"></div>
-    </section>
-  </aside>
-</main>
-<script>
-'use strict';
-const STORE = 'mfd-rides';
-const DB = 'mfd-rides', FILES = 'files';
-const $ = id => document.getElementById(id);
+    <aside>
+      <section>
+        <h2>Add rides</h2>
+        <div id="drop">Drop FIT files here, or<div class="buttons" style="justify-content:center"><button id="pick"
+              class="primary">Choose files…</button></div>
+        </div>
+        <input id="file" type="file" accept=".fit,.FIT" multiple hidden>
+        <div id="status" role="status"></div>
+      </section>
+      <section>
+        <h2>You</h2>
+        <div class="row">
+          <div><label for="ftp">FTP (W)</label><input id="ftp" type="number" min="50" max="600" step="5" value="250">
+          </div>
+          <div><label for="max-hr">Max heart rate</label><input id="max-hr" type="number" min="100" max="240" step="1"
+              value="185"></div>
+        </div>
+        <p class="hint">For the zones, IF and TSS: as in the trainer's settings (page 6).</p>
+      </section>
+      <section>
+        <h2>History</h2>
+        <div id="week"></div>
+        <div id="rides"></div>
+      </section>
+    </aside>
+  </main>
+  <script>
+    'use strict';
+    const STORE = 'mfd-rides';
+    const DB = 'mfd-rides', FILES = 'files';
+    const $ = id => document.getElementById(id);
 
-const POWER_ZONES = [
-  {top: 55, color: '#8e959f', name: 'Recovery'},
-  {top: 75, color: '#2f8cff', name: 'Endurance'},
-  {top: 90, color: '#2fc26b', name: 'Tempo'},
-  {top: 105, color: '#ffd23f', name: 'Threshold'},
-  {top: 120, color: '#ff8a1f', name: 'VO2 max'},
-  {top: 150, color: '#ef3b36', name: 'Anaerobic'},
-  {top: Infinity, color: '#b04dff', name: 'Neuromuscular'}
-];
-const HEART_ZONES = [
-  {top: 60, color: '#8e959f', name: 'Recovery'},
-  {top: 70, color: '#2f8cff', name: 'Endurance'},
-  {top: 80, color: '#2fc26b', name: 'Aerobic'},
-  {top: 90, color: '#ff8a1f', name: 'Threshold'},
-  {top: Infinity, color: '#ef3b36', name: 'Maximum'}
-];
-const BESTS = [5, 15, 30, 60, 120, 300, 600, 1200, 1800, 3600];
+    const POWER_ZONES = [
+      { top: 55, color: '#8e959f', name: 'Recovery' },
+      { top: 75, color: '#2f8cff', name: 'Endurance' },
+      { top: 90, color: '#2fc26b', name: 'Tempo' },
+      { top: 105, color: '#ffd23f', name: 'Threshold' },
+      { top: 120, color: '#ff8a1f', name: 'VO2 max' },
+      { top: 150, color: '#ef3b36', name: 'Anaerobic' },
+      { top: Infinity, color: '#b04dff', name: 'Neuromuscular' }
+    ];
+    const HEART_ZONES = [
+      { top: 60, color: '#8e959f', name: 'Recovery' },
+      { top: 70, color: '#2f8cff', name: 'Endurance' },
+      { top: 80, color: '#2fc26b', name: 'Aerobic' },
+      { top: 90, color: '#ff8a1f', name: 'Threshold' },
+      { top: Infinity, color: '#ef3b36', name: 'Maximum' }
+    ];
+    const BESTS = [5, 15, 30, 60, 120, 300, 600, 1200, 1800, 3600];
 
-const state = {ftp: 250, maxHr: 185, rides: [], open: null, ride: null, hover: -1, range: null};
-
-
-const FIT_EPOCH = 631065600;
-const BASE = {
-  0: [1, 'getUint8', 0xFF], 1: [1, 'getInt8', 0x7F], 2: [1, 'getUint8', 0xFF], 3: [2, 'getInt16', 0x7FFF],
-  4: [2, 'getUint16', 0xFFFF], 5: [4, 'getInt32', 0x7FFFFFFF], 6: [4, 'getUint32', 0xFFFFFFFF], 8: [4, 'getFloat32', NaN],
-  9: [8, 'getFloat64', NaN], 10: [1, 'getUint8', 0], 11: [2, 'getUint16', 0], 12: [4, 'getUint32', 0], 13: [1, 'getUint8', 0xFF]
-};
-
-function parseFit(buffer) {
-  const view = new DataView(buffer), bytes = new Uint8Array(buffer), messages = [];
-  let at = 0;
-  while (at + 12 <= buffer.byteLength) {
-    const headerSize = bytes[at], dataSize = view.getUint32(at + 4, true);
-    if (String.fromCharCode(...bytes.slice(at + 8, at + 12)) !== '.FIT') {
-      if (!messages.length) throw new Error('not a FIT file');
-      break;
-    }
-    let p = at + headerSize;
-    const end = Math.min(p + dataSize, buffer.byteLength);
-    const defs = [];
-    let lastTime = 0;
-    while (p < end) {
-      const h = bytes[p++];
-      if (h & 0x80) {
-        const def = defs[(h >> 5) & 3];
-        if (!def) throw new Error('a message before its definition');
-        const offset = h & 0x1F;
-        let time = (lastTime & ~0x1F) + offset;
-        if (offset < (lastTime & 0x1F)) time += 0x20;
-        lastTime = time;
-        const m = readData(view, p, def);
-        p += def.size;
-        if (m.fields[253] == null) m.fields[253] = time;
-        messages.push(m);
-      } else if (h & 0x40) {
-        const little = bytes[p + 1] === 0, global = view.getUint16(p + 2, little), count = bytes[p + 4];
-        p += 5;
-        const fields = [];
-        let size = 0;
-        for (let i = 0; i < count; i++, p += 3) {
-          fields.push({number: bytes[p], size: bytes[p + 1], type: bytes[p + 2] & 0x1F, at: size});
-          size += bytes[p + 1];
-        }
-        if (h & 0x20) {
-          const dev = bytes[p++];
-          for (let i = 0; i < dev; i++, p += 3) size += bytes[p + 1];
-        }
-        defs[h & 0x0F] = {global, fields, size, little};
-      } else {
-        const def = defs[h & 0x0F];
-        if (!def) throw new Error('a message before its definition');
-        const m = readData(view, p, def);
-        p += def.size;
-        if (m.fields[253] != null) lastTime = m.fields[253];
-        messages.push(m);
-      }
-    }
-    at = end + 2;
-  }
-  return messages;
-}
-
-function readData(view, p, def) {
-  const fields = {};
-  for (const f of def.fields) {
-    const base = BASE[f.type];
-    if (!base || f.size < base[0]) continue;
-    const v = view[base[1]](p + f.at, def.little);
-    if (Number.isNaN(v) || v === base[2]) continue;
-    fields[f.number] = v;
-  }
-  return {global: def.global, fields};
-}
+    const state = { ftp: 250, maxHr: 185, rides: [], open: null, ride: null, hover: -1, range: null };
 
 
-const SPORTS = {2: 'Cycling'}, SUB_SPORTS = {6: 'Indoor ride', 58: 'Virtual ride', 0: 'Ride'};
-
-function rideFrom(messages, fileName) {
-  const records = messages.filter(m => m.global === 20 && m.fields[253] != null);
-  if (!records.length) throw new Error('no records (per-second data) in it');
-  const session = messages.find(m => m.global === 18)?.fields || {};
-  const laps = messages.filter(m => m.global === 19).map(m => m.fields);
-  const value = (f, n, scale = 1, offset = 0) => f[n] == null ? null : f[n] / scale - offset;
-  const s = {time: [], power: [], heart: [], cadence: [], speed: [], distance: [], altitude: []};
-  for (let i = 0; i < records.length; i++) {
-    const f = records[i].fields, next = records[i + 1]?.fields[253];
-    const gap = next == null ? 1 : next - f[253];
-    const repeat = gap >= 1 && gap <= 10 ? gap : 1;
-    const v = {
-      power: value(f, 7), heart: value(f, 3), cadence: value(f, 4),
-      speed: f[73] != null ? f[73] / 1000 : value(f, 6, 1000), distance: value(f, 5, 100),
-      altitude: f[78] != null ? f[78] / 5 - 500 : value(f, 2, 5, 500)
+    const FIT_EPOCH = 631065600;
+    const BASE = {
+      0: [1, 'getUint8', 0xFF], 1: [1, 'getInt8', 0x7F], 2: [1, 'getUint8', 0xFF], 3: [2, 'getInt16', 0x7FFF],
+      4: [2, 'getUint16', 0xFFFF], 5: [4, 'getInt32', 0x7FFFFFFF], 6: [4, 'getUint32', 0xFFFFFFFF], 8: [4, 'getFloat32', NaN],
+      9: [8, 'getFloat64', NaN], 10: [1, 'getUint8', 0], 11: [2, 'getUint16', 0], 12: [4, 'getUint32', 0], 13: [1, 'getUint8', 0xFF]
     };
-    for (let k = 0; k < repeat; k++) {
-      s.time.push(f[253] + k);
-      for (const name of ['power', 'heart', 'cadence', 'speed', 'distance', 'altitude']) s[name].push(v[name]);
+
+    function parseFit(buffer) {
+      const view = new DataView(buffer), bytes = new Uint8Array(buffer), messages = [];
+      let at = 0;
+      while (at + 12 <= buffer.byteLength) {
+        const headerSize = bytes[at], dataSize = view.getUint32(at + 4, true);
+        if (String.fromCharCode(...bytes.slice(at + 8, at + 12)) !== '.FIT') {
+          if (!messages.length) throw new Error('not a FIT file');
+          break;
+        }
+        let p = at + headerSize;
+        const end = Math.min(p + dataSize, buffer.byteLength);
+        const defs = [];
+        let lastTime = 0;
+        while (p < end) {
+          const h = bytes[p++];
+          if (h & 0x80) {
+            const def = defs[(h >> 5) & 3];
+            if (!def) throw new Error('a message before its definition');
+            const offset = h & 0x1F;
+            let time = (lastTime & ~0x1F) + offset;
+            if (offset < (lastTime & 0x1F)) time += 0x20;
+            lastTime = time;
+            const m = readData(view, p, def);
+            p += def.size;
+            if (m.fields[253] == null) m.fields[253] = time;
+            messages.push(m);
+          } else if (h & 0x40) {
+            const little = bytes[p + 1] === 0, global = view.getUint16(p + 2, little), count = bytes[p + 4];
+            p += 5;
+            const fields = [];
+            let size = 0;
+            for (let i = 0; i < count; i++, p += 3) {
+              fields.push({ number: bytes[p], size: bytes[p + 1], type: bytes[p + 2] & 0x1F, at: size });
+              size += bytes[p + 1];
+            }
+            if (h & 0x20) {
+              const dev = bytes[p++];
+              for (let i = 0; i < dev; i++, p += 3) size += bytes[p + 1];
+            }
+            defs[h & 0x0F] = { global, fields, size, little };
+          } else {
+            const def = defs[h & 0x0F];
+            if (!def) throw new Error('a message before its definition');
+            const m = readData(view, p, def);
+            p += def.size;
+            if (m.fields[253] != null) lastTime = m.fields[253];
+            messages.push(m);
+          }
+        }
+        at = end + 2;
+      }
+      return messages;
     }
-  }
-  const has = name => s[name].some(v => v != null && v > 0);
-  const start = records[0].fields[253];
-  const named = fileName.replace(/\.fit$/i, '').replace(/^\d{4}-\d{2}-\d{2}-\d{4}-?/, '').replace(/-/g, ' ').trim();
-  return {
-    fileName,
-    name: named && named !== 'ride' ? named[0].toUpperCase() + named.slice(1) : SUB_SPORTS[session[6]] || 'Ride',
-    kind: SUB_SPORTS[session[6]] || SPORTS[session[5]] || 'Activity',
-    start: (start + FIT_EPOCH) * 1000,
-    elapsed: session[7] != null ? session[7] / 1000 : records.at(-1).fields[253] - start + 1,
-    seconds: s,
-    has: {power: has('power'), heart: has('heart'), cadence: has('cadence'), speed: has('speed'), altitude: s.altitude.some(v => v != null)},
-    laps: laps.map(l => ({start: l[2] != null ? l[2] : null, timer: l[8] != null ? l[8] / 1000 : null, distance: value(l, 9, 100),
-                          power: l[19] ?? null, heart: l[15] ?? null}))
-  };
-}
 
-
-const avg = list => { let sum = 0, n = 0; for (const v of list) if (v != null) { sum += v; n++; } return n ? sum / n : null; };
-const max = list => { let m = null; for (const v of list) if (v != null && (m == null || v > m)) m = v; return m; };
-const avgMoving = list => avg(list.map(v => v ? v : null));
-
-function normalized(power) {
-  if (power.length < 30) return avg(power);
-  let sum = 0, window = 0, fourth = 0, n = 0;
-  for (let i = 0; i < power.length; i++) {
-    window += power[i] || 0;
-    if (i >= 30) window -= power[i - 30] || 0;
-    if (i >= 29) { fourth += (window / 30) ** 4; n++; }
-  }
-  return (fourth / n) ** 0.25;
-}
-
-function best(power, seconds) {
-  if (power.length < seconds) return null;
-  let sum = 0, top = 0;
-  for (let i = 0; i < power.length; i++) {
-    sum += power[i] || 0;
-    if (i >= seconds) sum -= power[i - seconds] || 0;
-    if (i >= seconds - 1) top = Math.max(top, sum);
-  }
-  return top / seconds;
-}
-
-function analyze(ride, a = 0, b = ride.seconds.time.length) {
-  const s = ride.seconds, part = name => s[name].slice(a, b);
-  const power = part('power'), seconds = b - a;
-  const np = ride.has.power ? normalized(power) : null;
-  const intensity = np != null ? np / state.ftp : null;
-  const dist = part('distance').filter(v => v != null);
-  const alt = part('altitude');
-  let climb = 0;
-  for (let i = 1; i < alt.length; i++) if (alt[i] != null && alt[i - 1] != null && alt[i] > alt[i - 1]) climb += alt[i] - alt[i - 1];
-  const distance = dist.length ? dist.at(-1) - (a > 0 && s.distance[a - 1] != null ? s.distance[a - 1] : dist[0] > 50 ? dist[0] : 0) : null;
-  return {
-    seconds, distance,
-    speed: distance != null && seconds ? distance / seconds * 3.6 : null,
-    power: ride.has.power ? avg(power) : null, maxPower: ride.has.power ? max(power) : null, np, intensity,
-    tss: intensity != null ? seconds * np * intensity / (state.ftp * 3600) * 100 : null,
-    work: ride.has.power ? power.reduce((t, v) => t + (v || 0), 0) / 1000 : null,
-    heart: ride.has.heart ? avg(part('heart').map(v => v || null)) : null, maxHeart: ride.has.heart ? max(part('heart')) : null,
-    cadence: ride.has.cadence ? avgMoving(part('cadence')) : null,
-    climb: ride.has.altitude ? climb : null
-  };
-}
-
-function zoneTimes(list, zones, ref) {
-  const out = zones.map(() => 0);
-  for (const v of list) {
-    if (v == null || v <= 0) continue;
-    out[zones.findIndex(z => v / ref * 100 < z.top)]++;
-  }
-  return out;
-}
-
-
-const clock = t => {
-  t = Math.round(t);
-  const h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = t % 60;
-  return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
-};
-const short = t => t < 60 ? `${t} s` : t < 3600 ? `${t / 60} min` : `${t / 3600} h`;
-const km = m => m == null ? '–' : m >= 10000 ? `${(m / 1000).toFixed(1)} km` : `${(m / 1000).toFixed(2)} km`;
-const num = (v, unit = '', digits = 0) => v == null || !Number.isFinite(v) ? '–' : `${v.toFixed(digits)}${unit ? ' ' + unit : ''}`;
-const day = ms => new Date(ms).toLocaleDateString(undefined, {weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'});
-const hour = ms => new Date(ms).toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'});
-const esc = text => String(text).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-
-function statsHtml(n, ride) {
-  const items = [
-    [clock(n.seconds), 'time'],
-    [km(n.distance), 'distance'],
-    [num(n.speed, 'km/h', 1), 'average speed'],
-    ...(ride.has.power ? [[num(n.power, 'W'), 'average power'], [num(n.np, 'W'), 'normalized (NP)'], [num(n.maxPower, 'W'), 'max power'],
-                          [num(n.intensity, '', 2), 'intensity (IF)'], [num(n.tss), 'stress (TSS)'], [num(n.work, 'kJ'), 'work']] : []),
-    ...(ride.has.heart ? [[num(n.heart, 'bpm'), 'average heart rate'], [num(n.maxHeart, 'bpm'), 'max heart rate']] : []),
-    ...(ride.has.cadence ? [[num(n.cadence, 'rpm'), 'average cadence']] : []),
-    ...(ride.has.altitude ? [[num(n.climb, 'm'), 'climbing']] : [])
-  ];
-  return items.map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
-}
-
-
-function showRide() {
-  const ride = state.ride;
-  $('empty').hidden = !!ride;
-  $('ride').hidden = !ride;
-  if (!ride) return;
-  $('r-name').textContent = ride.name;
-  $('r-when').textContent = `${ride.kind} · ${day(ride.start)}, ${hour(ride.start)} · ${clock(ride.elapsed)} elapsed`;
-  $('r-stats').innerHTML = statsHtml(analyze(ride), ride);
-  showZones();
-  showBests();
-  showLaps();
-  showRange();
-  drawChart();
-}
-
-function zoneRows(times, zones, label) {
-  const total = times.reduce((a, b) => a + b, 0);
-  if (!total) return `<p class="hint">No ${label} in this ride.</p>`;
-  return zones.map((z, i) => `<div class="zone"><span>Z${i + 1} ${z.name}</span>` +
-    `<span class="bar"><i style="width:${(times[i] / total * 100).toFixed(1)}%;background:${z.color}"></i></span>` +
-    `<span>${clock(times[i])} · ${Math.round(times[i] / total * 100)}%</span></div>`).join('');
-}
-
-function showZones() {
-  const s = state.ride.seconds;
-  $('power-zones').innerHTML = zoneRows(zoneTimes(s.power, POWER_ZONES, state.ftp), POWER_ZONES, 'power');
-  $('heart-zones').innerHTML = zoneRows(zoneTimes(s.heart, HEART_ZONES, state.maxHr), HEART_ZONES, 'heart rate');
-}
-
-function showBests() {
-  const ride = state.ride;
-  if (!ride.has.power) {
-    $('bests').innerHTML = '<tr><td class="hint">No power in this ride.</td></tr>';
-    $('ftp-estimate').textContent = '';
-    return;
-  }
-  const rows = BESTS.map(t => [t, best(ride.seconds.power, t)]).filter(([, w]) => w != null);
-  $('bests').innerHTML = '<tr><th>Time</th><th>Power</th><th>% FTP</th></tr>' +
-    rows.map(([t, w]) => `<tr><td>${short(t)}</td><td>${Math.round(w)} W</td><td>${Math.round(w / state.ftp * 100)} %</td></tr>`).join('');
-  const twenty = best(ride.seconds.power, 1200);
-  $('ftp-estimate').textContent = twenty ? `FTP estimate: ${Math.round(twenty * 0.95)} W (95 % of the best 20 minutes; a true estimate needs an all-out 20 minutes).` : '';
-}
-
-function showLaps() {
-  const laps = state.ride.laps;
-  $('laps').innerHTML = !laps.length ? '<tr><td class="hint">No laps.</td></tr>' :
-    '<tr><th>Lap</th><th>Time</th><th>Distance</th><th>Power</th><th>HR</th></tr>' +
-    laps.map((l, i) => `<tr><td>${i + 1}</td><td>${l.timer != null ? clock(l.timer) : '–'}</td><td>${km(l.distance)}</td>` +
-      `<td>${num(l.power, 'W')}</td><td>${num(l.heart, 'bpm')}</td></tr>`).join('');
-}
-
-function showRange() {
-  const r = state.range;
-  $('range').classList.toggle('shown', !!r && r.b - r.a >= 5);
-  if (!r || r.b - r.a < 5) return;
-  $('range-title').textContent = `Selected: ${clock(r.a)} to ${clock(r.b)} (${clock(r.b - r.a)})`;
-  $('range-stats').innerHTML = statsHtml(analyze(state.ride, r.a, r.b), state.ride);
-}
-
-
-const canvas = $('chart');
-const PAD = {left: 46, right: 10, top: 6, bottom: 22};
-const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-
-function tracks() {
-  const h = state.ride.has;
-  return [
-    h.power && {name: 'power', label: 'Power', unit: 'W', height: 150, zones: true},
-    h.heart && {name: 'heart', label: 'Heart rate', unit: 'bpm', height: 90, color: '--hr'},
-    h.cadence && {name: 'cadence', label: 'Cadence', unit: 'rpm', height: 70, color: '--cadence'},
-    h.speed && {name: 'speed', label: 'Speed', unit: 'km/h', height: 70, color: '--speed', scale: 3.6, digits: 1},
-    h.altitude && {name: 'altitude', label: 'Elevation', unit: 'm', height: 70, color: '--elevation', area: true}
-  ].filter(Boolean);
-}
-
-function layout() {
-  const list = tracks();
-  let y = PAD.top;
-  for (const t of list) { t.top = y; t.bottom = y + t.height; y = t.bottom + 10; }
-  return {list, height: y - 10 + PAD.bottom};
-}
-
-function drawChart() {
-  const ride = state.ride;
-  if (!ride) return;
-  const {list, height} = layout();
-  const ratio = window.devicePixelRatio || 1, width = canvas.clientWidth;
-  canvas.style.height = `${height}px`;
-  canvas.width = Math.round(width * ratio);
-  canvas.height = Math.round(height * ratio);
-  const g = canvas.getContext('2d');
-  g.setTransform(ratio, 0, 0, ratio, 0, 0);
-  g.clearRect(0, 0, width, height);
-  const n = ride.seconds.time.length, plotW = width - PAD.left - PAD.right;
-  const x = i => PAD.left + i / Math.max(1, n - 1) * plotW;
-  g.font = '11px system-ui, sans-serif';
-
-  if (state.range) {
-    g.fillStyle = css('--range');
-    g.fillRect(x(state.range.a), PAD.top, x(state.range.b) - x(state.range.a), height - PAD.top - PAD.bottom);
-  }
-  for (const t of list) {
-    const values = ride.seconds[t.name].map(v => v == null ? null : v * (t.scale || 1));
-    let lo = t.name === 'altitude' ? Math.min(...values.filter(v => v != null)) : 0;
-    let hi = Math.max(...values.filter(v => v != null), lo + 1);
-    if (t.name === 'heart') lo = Math.max(0, Math.floor((Math.min(...values.filter(v => v)) - 10) / 10) * 10);
-    hi = lo + (hi - lo) * 1.08;
-    const y = v => t.bottom - (v - lo) / (hi - lo) * t.height;
-    t.y = y; t.lo = lo; t.hi = hi;
-    g.strokeStyle = css('--chart-grid'); g.fillStyle = css('--muted'); g.lineWidth = 1;
-    g.textAlign = 'right'; g.textBaseline = 'middle';
-    for (const v of [lo, (lo + hi) / 2]) {
-      g.beginPath(); g.moveTo(PAD.left, Math.round(y(v)) + .5); g.lineTo(width - PAD.right, Math.round(y(v)) + .5); g.stroke();
-      g.fillText(Math.round(v), PAD.left - 6, y(v));
+    function readData(view, p, def) {
+      const fields = {};
+      for (const f of def.fields) {
+        const base = BASE[f.type];
+        if (!base || f.size < base[0]) continue;
+        const v = view[base[1]](p + f.at, def.little);
+        if (Number.isNaN(v) || v === base[2]) continue;
+        fields[f.number] = v;
+      }
+      return { global: def.global, fields };
     }
-    g.textAlign = 'left'; g.textBaseline = 'top';
-    g.fillText(`${t.label} (${t.unit})`, PAD.left + 4, t.top + 1);
-    const columns = Math.max(1, Math.round(plotW));
-    if (t.zones) {
-      if (state.ftp) {
-        g.strokeStyle = css('--muted'); g.setLineDash([4, 4]);
-        g.beginPath(); g.moveTo(PAD.left, Math.round(y(state.ftp)) + .5); g.lineTo(width - PAD.right, Math.round(y(state.ftp)) + .5); g.stroke();
-        g.setLineDash([]);
+
+
+    const SPORTS = { 2: 'Cycling' }, SUB_SPORTS = { 6: 'Indoor ride', 58: 'Virtual ride', 0: 'Ride' };
+
+    function rideFrom(messages, fileName) {
+      const records = messages.filter(m => m.global === 20 && m.fields[253] != null);
+      if (!records.length) throw new Error('no records (per-second data) in it');
+      const session = messages.find(m => m.global === 18)?.fields || {};
+      const laps = messages.filter(m => m.global === 19).map(m => m.fields);
+      const value = (f, n, scale = 1, offset = 0) => f[n] == null ? null : f[n] / scale - offset;
+      const s = { time: [], power: [], heart: [], cadence: [], speed: [], distance: [], altitude: [] };
+      for (let i = 0; i < records.length; i++) {
+        const f = records[i].fields, next = records[i + 1]?.fields[253];
+        const gap = next == null ? 1 : next - f[253];
+        const repeat = gap >= 1 && gap <= 10 ? gap : 1;
+        const v = {
+          power: value(f, 7), heart: value(f, 3), cadence: value(f, 4),
+          speed: f[73] != null ? f[73] / 1000 : value(f, 6, 1000), distance: value(f, 5, 100),
+          altitude: f[78] != null ? f[78] / 5 - 500 : value(f, 2, 5, 500)
+        };
+        for (let k = 0; k < repeat; k++) {
+          s.time.push(f[253] + k);
+          for (const name of ['power', 'heart', 'cadence', 'speed', 'distance', 'altitude']) s[name].push(v[name]);
+        }
+      }
+      const has = name => s[name].some(v => v != null && v > 0);
+      const start = records[0].fields[253];
+      const named = fileName.replace(/\.fit$/i, '').replace(/^\d{4}-\d{2}-\d{2}-\d{4}-?/, '').replace(/-/g, ' ').trim();
+      return {
+        fileName,
+        name: named && named !== 'ride' ? named[0].toUpperCase() + named.slice(1) : SUB_SPORTS[session[6]] || 'Ride',
+        kind: SUB_SPORTS[session[6]] || SPORTS[session[5]] || 'Activity',
+        start: (start + FIT_EPOCH) * 1000,
+        elapsed: session[7] != null ? session[7] / 1000 : records.at(-1).fields[253] - start + 1,
+        seconds: s,
+        has: { power: has('power'), heart: has('heart'), cadence: has('cadence'), speed: has('speed'), altitude: s.altitude.some(v => v != null) },
+        laps: laps.map(l => ({
+          start: l[2] != null ? l[2] : null, timer: l[8] != null ? l[8] / 1000 : null, distance: value(l, 9, 100),
+          power: l[19] ?? null, heart: l[15] ?? null
+        }))
+      };
+    }
+
+
+    const avg = list => { let sum = 0, n = 0; for (const v of list) if (v != null) { sum += v; n++; } return n ? sum / n : null; };
+    const max = list => { let m = null; for (const v of list) if (v != null && (m == null || v > m)) m = v; return m; };
+    const avgMoving = list => avg(list.map(v => v ? v : null));
+
+    function normalized(power) {
+      if (power.length < 30) return avg(power);
+      let sum = 0, window = 0, fourth = 0, n = 0;
+      for (let i = 0; i < power.length; i++) {
+        window += power[i] || 0;
+        if (i >= 30) window -= power[i - 30] || 0;
+        if (i >= 29) { fourth += (window / 30) ** 4; n++; }
+      }
+      return (fourth / n) ** 0.25;
+    }
+
+    function best(power, seconds) {
+      if (power.length < seconds) return null;
+      let sum = 0, top = 0;
+      for (let i = 0; i < power.length; i++) {
+        sum += power[i] || 0;
+        if (i >= seconds) sum -= power[i - seconds] || 0;
+        if (i >= seconds - 1) top = Math.max(top, sum);
+      }
+      return top / seconds;
+    }
+
+    function analyze(ride, a = 0, b = ride.seconds.time.length) {
+      const s = ride.seconds, part = name => s[name].slice(a, b);
+      const power = part('power'), seconds = b - a;
+      const np = ride.has.power ? normalized(power) : null;
+      const intensity = np != null ? np / state.ftp : null;
+      const dist = part('distance').filter(v => v != null);
+      const alt = part('altitude');
+      let climb = 0;
+      for (let i = 1; i < alt.length; i++) if (alt[i] != null && alt[i - 1] != null && alt[i] > alt[i - 1]) climb += alt[i] - alt[i - 1];
+      const distance = dist.length ? dist.at(-1) - (a > 0 && s.distance[a - 1] != null ? s.distance[a - 1] : dist[0] > 50 ? dist[0] : 0) : null;
+      return {
+        seconds, distance,
+        speed: distance != null && seconds ? distance / seconds * 3.6 : null,
+        power: ride.has.power ? avg(power) : null, maxPower: ride.has.power ? max(power) : null, np, intensity,
+        tss: intensity != null ? seconds * np * intensity / (state.ftp * 3600) * 100 : null,
+        work: ride.has.power ? power.reduce((t, v) => t + (v || 0), 0) / 1000 : null,
+        heart: ride.has.heart ? avg(part('heart').map(v => v || null)) : null, maxHeart: ride.has.heart ? max(part('heart')) : null,
+        cadence: ride.has.cadence ? avgMoving(part('cadence')) : null,
+        climb: ride.has.altitude ? climb : null
+      };
+    }
+
+    function zoneTimes(list, zones, ref) {
+      const out = zones.map(() => 0);
+      for (const v of list) {
+        if (v == null || v <= 0) continue;
+        out[zones.findIndex(z => v / ref * 100 < z.top)]++;
+      }
+      return out;
+    }
+
+
+    const clock = t => {
+      t = Math.round(t);
+      const h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = t % 60;
+      return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+    };
+    const short = t => t < 60 ? `${t} s` : t < 3600 ? `${t / 60} min` : `${t / 3600} h`;
+    const km = m => m == null ? '–' : m >= 10000 ? `${(m / 1000).toFixed(1)} km` : `${(m / 1000).toFixed(2)} km`;
+    const num = (v, unit = '', digits = 0) => v == null || !Number.isFinite(v) ? '–' : `${v.toFixed(digits)}${unit ? ' ' + unit : ''}`;
+    const day = ms => new Date(ms).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    const hour = ms => new Date(ms).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    const esc = text => String(text).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    function statsHtml(n, ride) {
+      const items = [
+        [clock(n.seconds), 'time'],
+        [km(n.distance), 'distance'],
+        [num(n.speed, 'km/h', 1), 'average speed'],
+        ...(ride.has.power ? [[num(n.power, 'W'), 'average power'], [num(n.np, 'W'), 'normalized (NP)'], [num(n.maxPower, 'W'), 'max power'],
+        [num(n.intensity, '', 2), 'intensity (IF)'], [num(n.tss), 'stress (TSS)'], [num(n.work, 'kJ'), 'work']] : []),
+        ...(ride.has.heart ? [[num(n.heart, 'bpm'), 'average heart rate'], [num(n.maxHeart, 'bpm'), 'max heart rate']] : []),
+        ...(ride.has.cadence ? [[num(n.cadence, 'rpm'), 'average cadence']] : []),
+        ...(ride.has.altitude ? [[num(n.climb, 'm'), 'climbing']] : [])
+      ];
+      return items.map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+    }
+
+
+    function showRide() {
+      const ride = state.ride;
+      $('empty').hidden = !!ride;
+      $('ride').hidden = !ride;
+      if (!ride) return;
+      $('r-name').textContent = ride.name;
+      $('r-when').textContent = `${ride.kind} · ${day(ride.start)}, ${hour(ride.start)} · ${clock(ride.elapsed)} elapsed`;
+      $('r-stats').innerHTML = statsHtml(analyze(ride), ride);
+      showZones();
+      showBests();
+      showLaps();
+      showRange();
+      drawChart();
+    }
+
+    function zoneRows(times, zones, label) {
+      const total = times.reduce((a, b) => a + b, 0);
+      if (!total) return `<p class="hint">No ${label} in this ride.</p>`;
+      return zones.map((z, i) => `<div class="zone"><span>Z${i + 1} ${z.name}</span>` +
+        `<span class="bar"><i style="width:${(times[i] / total * 100).toFixed(1)}%;background:${z.color}"></i></span>` +
+        `<span>${clock(times[i])} · ${Math.round(times[i] / total * 100)}%</span></div>`).join('');
+    }
+
+    function showZones() {
+      const s = state.ride.seconds;
+      $('power-zones').innerHTML = zoneRows(zoneTimes(s.power, POWER_ZONES, state.ftp), POWER_ZONES, 'power');
+      $('heart-zones').innerHTML = zoneRows(zoneTimes(s.heart, HEART_ZONES, state.maxHr), HEART_ZONES, 'heart rate');
+    }
+
+    function showBests() {
+      const ride = state.ride;
+      if (!ride.has.power) {
+        $('bests').innerHTML = '<tr><td class="hint">No power in this ride.</td></tr>';
+        $('ftp-estimate').textContent = '';
+        return;
+      }
+      const rows = BESTS.map(t => [t, best(ride.seconds.power, t)]).filter(([, w]) => w != null);
+      $('bests').innerHTML = '<tr><th>Time</th><th>Power</th><th>% FTP</th></tr>' +
+        rows.map(([t, w]) => `<tr><td>${short(t)}</td><td>${Math.round(w)} W</td><td>${Math.round(w / state.ftp * 100)} %</td></tr>`).join('');
+      const twenty = best(ride.seconds.power, 1200);
+      $('ftp-estimate').textContent = twenty ? `FTP estimate: ${Math.round(twenty * 0.95)} W (95 % of the best 20 minutes; a true estimate needs an all-out 20 minutes).` : '';
+    }
+
+    function showLaps() {
+      const laps = state.ride.laps;
+      $('laps').innerHTML = !laps.length ? '<tr><td class="hint">No laps.</td></tr>' :
+        '<tr><th>Lap</th><th>Time</th><th>Distance</th><th>Power</th><th>HR</th></tr>' +
+        laps.map((l, i) => `<tr><td>${i + 1}</td><td>${l.timer != null ? clock(l.timer) : '–'}</td><td>${km(l.distance)}</td>` +
+          `<td>${num(l.power, 'W')}</td><td>${num(l.heart, 'bpm')}</td></tr>`).join('');
+    }
+
+    function showRange() {
+      const r = state.range;
+      $('range').classList.toggle('shown', !!r && r.b - r.a >= 5);
+      if (!r || r.b - r.a < 5) return;
+      $('range-title').textContent = `Selected: ${clock(r.a)} to ${clock(r.b)} (${clock(r.b - r.a)})`;
+      $('range-stats').innerHTML = statsHtml(analyze(state.ride, r.a, r.b), state.ride);
+    }
+
+
+    const canvas = $('chart');
+    const PAD = { left: 46, right: 10, top: 6, bottom: 22 };
+    const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+    function tracks() {
+      const h = state.ride.has;
+      return [
+        h.power && { name: 'power', label: 'Power', unit: 'W', height: 150, zones: true },
+        h.heart && { name: 'heart', label: 'Heart rate', unit: 'bpm', height: 90, color: '--hr' },
+        h.cadence && { name: 'cadence', label: 'Cadence', unit: 'rpm', height: 70, color: '--cadence' },
+        h.speed && { name: 'speed', label: 'Speed', unit: 'km/h', height: 70, color: '--speed', scale: 3.6, digits: 1 },
+        h.altitude && { name: 'altitude', label: 'Elevation', unit: 'm', height: 70, color: '--elevation', area: true }
+      ].filter(Boolean);
+    }
+
+    function layout() {
+      const list = tracks();
+      let y = PAD.top;
+      for (const t of list) { t.top = y; t.bottom = y + t.height; y = t.bottom + 10; }
+      return { list, height: y - 10 + PAD.bottom };
+    }
+
+    function drawChart() {
+      const ride = state.ride;
+      if (!ride) return;
+      const { list, height } = layout();
+      const ratio = window.devicePixelRatio || 1, width = canvas.clientWidth;
+      canvas.style.height = `${height}px`;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      const g = canvas.getContext('2d');
+      g.setTransform(ratio, 0, 0, ratio, 0, 0);
+      g.clearRect(0, 0, width, height);
+      const n = ride.seconds.time.length, plotW = width - PAD.left - PAD.right;
+      const x = i => PAD.left + i / Math.max(1, n - 1) * plotW;
+      g.font = '11px system-ui, sans-serif';
+
+      if (state.range) {
+        g.fillStyle = css('--range');
+        g.fillRect(x(state.range.a), PAD.top, x(state.range.b) - x(state.range.a), height - PAD.top - PAD.bottom);
+      }
+      for (const t of list) {
+        const values = ride.seconds[t.name].map(v => v == null ? null : v * (t.scale || 1));
+        let lo = t.name === 'altitude' ? Math.min(...values.filter(v => v != null)) : 0;
+        let hi = Math.max(...values.filter(v => v != null), lo + 1);
+        if (t.name === 'heart') lo = Math.max(0, Math.floor((Math.min(...values.filter(v => v)) - 10) / 10) * 10);
+        hi = lo + (hi - lo) * 1.08;
+        const y = v => t.bottom - (v - lo) / (hi - lo) * t.height;
+        t.y = y; t.lo = lo; t.hi = hi;
+        g.strokeStyle = css('--chart-grid'); g.fillStyle = css('--muted'); g.lineWidth = 1;
+        g.textAlign = 'right'; g.textBaseline = 'middle';
+        for (const v of [lo, (lo + hi) / 2]) {
+          g.beginPath(); g.moveTo(PAD.left, Math.round(y(v)) + .5); g.lineTo(width - PAD.right, Math.round(y(v)) + .5); g.stroke();
+          g.fillText(Math.round(v), PAD.left - 6, y(v));
+        }
+        g.textAlign = 'left'; g.textBaseline = 'top';
+        g.fillText(`${t.label} (${t.unit})`, PAD.left + 4, t.top + 1);
+        const columns = Math.max(1, Math.round(plotW));
+        if (t.zones) {
+          if (state.ftp) {
+            g.strokeStyle = css('--muted'); g.setLineDash([4, 4]);
+            g.beginPath(); g.moveTo(PAD.left, Math.round(y(state.ftp)) + .5); g.lineTo(width - PAD.right, Math.round(y(state.ftp)) + .5); g.stroke();
+            g.setLineDash([]);
+          }
+        }
+        g.beginPath();
+        let started = false;
+        for (let c = 0; c < columns; c++) {
+          const a = Math.floor(c / columns * n), b = Math.max(a + 1, Math.floor((c + 1) / columns * n));
+          const v = avg(values.slice(a, b));
+          if (v == null) { started = false; continue; }
+          const px = PAD.left + c + .5;
+          if (t.zones) {
+            const zone = POWER_ZONES.findIndex(z => v / state.ftp * 100 < z.top);
+            g.fillStyle = POWER_ZONES[zone].color;
+            g.fillRect(px - .5, y(v), 1.2, t.bottom - y(v));
+          } else if (t.area) {
+            g.fillStyle = css(t.color);
+            g.fillRect(px - .5, y(v), 1.2, t.bottom - y(v));
+          } else if (!started) { g.moveTo(px, y(v)); started = true; } else g.lineTo(px, y(v));
+        }
+        if (!t.zones && !t.area) { g.strokeStyle = css(t.color); g.lineWidth = 1.5; g.stroke(); }
+      }
+      g.fillStyle = css('--muted'); g.textAlign = 'center'; g.textBaseline = 'top';
+      const step = [60, 300, 600, 900, 1800, 3600, 7200].find(s => n / s <= Math.max(2, plotW / 80)) || 7200;
+      for (let t = 0; t <= n; t += step) g.fillText(clock(t), Math.min(Math.max(x(t), PAD.left + 12), width - PAD.right - 14), height - PAD.bottom + 6);
+      if (state.hover >= 0) {
+        const hx = Math.round(x(state.hover)) + .5;
+        g.strokeStyle = css('--cursor'); g.lineWidth = 1;
+        g.beginPath(); g.moveTo(hx, PAD.top); g.lineTo(hx, height - PAD.bottom); g.stroke();
       }
     }
-    g.beginPath();
-    let started = false;
-    for (let c = 0; c < columns; c++) {
-      const a = Math.floor(c / columns * n), b = Math.max(a + 1, Math.floor((c + 1) / columns * n));
-      const v = avg(values.slice(a, b));
-      if (v == null) { started = false; continue; }
-      const px = PAD.left + c + .5;
-      if (t.zones) {
-        const zone = POWER_ZONES.findIndex(z => v / state.ftp * 100 < z.top);
-        g.fillStyle = POWER_ZONES[zone].color;
-        g.fillRect(px - .5, y(v), 1.2, t.bottom - y(v));
-      } else if (t.area) {
-        g.fillStyle = css(t.color);
-        g.fillRect(px - .5, y(v), 1.2, t.bottom - y(v));
-      } else if (!started) { g.moveTo(px, y(v)); started = true; } else g.lineTo(px, y(v));
+
+    function indexAt(event) {
+      const r = canvas.getBoundingClientRect(), n = state.ride.seconds.time.length;
+      const t = (event.clientX - r.left - PAD.left) / (r.width - PAD.left - PAD.right);
+      return Math.max(0, Math.min(n - 1, Math.round(t * (n - 1))));
     }
-    if (!t.zones && !t.area) { g.strokeStyle = css(t.color); g.lineWidth = 1.5; g.stroke(); }
-  }
-  g.fillStyle = css('--muted'); g.textAlign = 'center'; g.textBaseline = 'top';
-  const step = [60, 300, 600, 900, 1800, 3600, 7200].find(s => n / s <= Math.max(2, plotW / 80)) || 7200;
-  for (let t = 0; t <= n; t += step) g.fillText(clock(t), Math.min(Math.max(x(t), PAD.left + 12), width - PAD.right - 14), height - PAD.bottom + 6);
-  if (state.hover >= 0) {
-    const hx = Math.round(x(state.hover)) + .5;
-    g.strokeStyle = css('--cursor'); g.lineWidth = 1;
-    g.beginPath(); g.moveTo(hx, PAD.top); g.lineTo(hx, height - PAD.bottom); g.stroke();
-  }
-}
 
-function indexAt(event) {
-  const r = canvas.getBoundingClientRect(), n = state.ride.seconds.time.length;
-  const t = (event.clientX - r.left - PAD.left) / (r.width - PAD.left - PAD.right);
-  return Math.max(0, Math.min(n - 1, Math.round(t * (n - 1))));
-}
+    function showValues(i) {
+      if (i < 0) { $('chart-values').textContent = ''; return; }
+      const s = state.ride.seconds, parts = [`<b>${clock(i)}</b>`];
+      if (state.ride.has.power) parts.push(`<b>${Math.round(avg(s.power.slice(Math.max(0, i - 2), i + 1)) || 0)}</b> W`);
+      if (state.ride.has.heart && s.heart[i]) parts.push(`<b>${s.heart[i]}</b> bpm`);
+      if (state.ride.has.cadence && s.cadence[i] != null) parts.push(`<b>${s.cadence[i]}</b> rpm`);
+      if (state.ride.has.speed && s.speed[i] != null) parts.push(`<b>${(s.speed[i] * 3.6).toFixed(1)}</b> km/h`);
+      if (s.distance[i] != null) parts.push(`<b>${km(s.distance[i])}</b>`);
+      if (state.ride.has.altitude && s.altitude[i] != null) parts.push(`<b>${Math.round(s.altitude[i])}</b> m`);
+      $('chart-values').innerHTML = parts.join(' · ');
+    }
 
-function showValues(i) {
-  if (i < 0) { $('chart-values').textContent = ''; return; }
-  const s = state.ride.seconds, parts = [`<b>${clock(i)}</b>`];
-  if (state.ride.has.power) parts.push(`<b>${Math.round(avg(s.power.slice(Math.max(0, i - 2), i + 1)) || 0)}</b> W`);
-  if (state.ride.has.heart && s.heart[i]) parts.push(`<b>${s.heart[i]}</b> bpm`);
-  if (state.ride.has.cadence && s.cadence[i] != null) parts.push(`<b>${s.cadence[i]}</b> rpm`);
-  if (state.ride.has.speed && s.speed[i] != null) parts.push(`<b>${(s.speed[i] * 3.6).toFixed(1)}</b> km/h`);
-  if (s.distance[i] != null) parts.push(`<b>${km(s.distance[i])}</b>`);
-  if (state.ride.has.altitude && s.altitude[i] != null) parts.push(`<b>${Math.round(s.altitude[i])}</b> m`);
-  $('chart-values').innerHTML = parts.join(' · ');
-}
-
-let dragFrom = null;
-canvas.addEventListener('pointerdown', e => {
-  if (!state.ride) return;
-  dragFrom = indexAt(e);
-  canvas.setPointerCapture(e.pointerId);
-  state.range = null;
-  showRange();
-});
-canvas.addEventListener('pointermove', e => {
-  if (!state.ride) return;
-  const i = indexAt(e);
-  state.hover = i;
-  if (dragFrom != null && Math.abs(i - dragFrom) >= 1) state.range = {a: Math.min(i, dragFrom), b: Math.max(i, dragFrom) + 1};
-  showValues(i);
-  drawChart();
-});
-canvas.addEventListener('pointerup', () => {
-  dragFrom = null;
-  if (state.range && state.range.b - state.range.a < 5) state.range = null;
-  showRange();
-  drawChart();
-});
-canvas.addEventListener('pointerleave', () => {
-  if (dragFrom != null) return;
-  state.hover = -1;
-  showValues(-1);
-  drawChart();
-});
-const clearRange = () => { state.range = null; showRange(); drawChart(); };
-$('range-clear').addEventListener('click', clearRange);
-document.addEventListener('keydown', e => { if (e.key === 'Escape') clearRange(); });
-new ResizeObserver(() => drawChart()).observe(canvas);
+    let dragFrom = null;
+    canvas.addEventListener('pointerdown', e => {
+      if (!state.ride) return;
+      dragFrom = indexAt(e);
+      canvas.setPointerCapture(e.pointerId);
+      state.range = null;
+      showRange();
+    });
+    canvas.addEventListener('pointermove', e => {
+      if (!state.ride) return;
+      const i = indexAt(e);
+      state.hover = i;
+      if (dragFrom != null && Math.abs(i - dragFrom) >= 1) state.range = { a: Math.min(i, dragFrom), b: Math.max(i, dragFrom) + 1 };
+      showValues(i);
+      drawChart();
+    });
+    canvas.addEventListener('pointerup', () => {
+      dragFrom = null;
+      if (state.range && state.range.b - state.range.a < 5) state.range = null;
+      showRange();
+      drawChart();
+    });
+    canvas.addEventListener('pointerleave', () => {
+      if (dragFrom != null) return;
+      state.hover = -1;
+      showValues(-1);
+      drawChart();
+    });
+    const clearRange = () => { state.range = null; showRange(); drawChart(); };
+    $('range-clear').addEventListener('click', clearRange);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') clearRange(); });
+    new ResizeObserver(() => drawChart()).observe(canvas);
 
 
-let dbOpening = null;
-function db() {
-  dbOpening ||= new Promise((resolve, reject) => {
-    try {
-      const request = indexedDB.open(DB, 1);
-      request.onupgradeneeded = () => request.result.createObjectStore(FILES, {keyPath: 'id'});
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    } catch (error) { reject(error); }
-  });
-  return dbOpening;
-}
-async function dbRun(mode, work) {
-  const d = await db();
-  return new Promise((resolve, reject) => {
-    const t = d.transaction(FILES, mode), result = work(t.objectStore(FILES));
-    t.oncomplete = () => resolve(result.result);
-    t.onerror = () => reject(t.error);
-  });
-}
+    let dbOpening = null;
+    function db() {
+      dbOpening ||= new Promise((resolve, reject) => {
+        try {
+          const request = indexedDB.open(DB, 1);
+          request.onupgradeneeded = () => request.result.createObjectStore(FILES, { keyPath: 'id' });
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        } catch (error) { reject(error); }
+      });
+      return dbOpening;
+    }
+    async function dbRun(mode, work) {
+      const d = await db();
+      return new Promise((resolve, reject) => {
+        const t = d.transaction(FILES, mode), result = work(t.objectStore(FILES));
+        t.oncomplete = () => resolve(result.result);
+        t.onerror = () => reject(t.error);
+      });
+    }
 
-async function add(name, buffer) {
-  const ride = rideFrom(parseFit(buffer), name);
-  const id = `${ride.start}-${name}`;
-  const n = analyze(ride);
-  const entry = {id, name: ride.name, fileName: name, kind: ride.kind, start: ride.start, seconds: n.seconds, distance: n.distance,
-                 power: n.power, tss: n.tss, heart: n.heart, buffer};
-  state.rides = state.rides.filter(r => r.id !== id).concat(entry).sort((a, b) => b.start - a.start);
-  try { await dbRun('readwrite', s => s.put(entry)); } catch (error) { entry.unsaved = true; }
-  return entry;
-}
+    async function add(name, buffer) {
+      const ride = rideFrom(parseFit(buffer), name);
+      const id = `${ride.start}-${name}`;
+      const n = analyze(ride);
+      const entry = {
+        id, name: ride.name, fileName: name, kind: ride.kind, start: ride.start, seconds: n.seconds, distance: n.distance,
+        power: n.power, tss: n.tss, heart: n.heart, buffer
+      };
+      state.rides = state.rides.filter(r => r.id !== id).concat(entry).sort((a, b) => b.start - a.start);
+      try { await dbRun('readwrite', s => s.put(entry)); } catch (error) { entry.unsaved = true; }
+      return entry;
+    }
 
-async function addFiles(files) {
-  let added = 0, failed = [], last = null;
-  for (const file of files) {
-    try { last = await add(file.name, await file.arrayBuffer()); added++; } catch (error) { failed.push(`${file.name}: ${error.message}`); }
-  }
-  status(`${added ? `Added ${added} ride${added > 1 ? 's' : ''}.` : ''}${failed.length ? ` Not read: ${failed.join('; ')}` : ''}` +
-    (state.rides.some(r => r.unsaved) ? ' This browser doesn\'t keep files here: they are gone when the page closes.' : ''), failed.length && !added);
-  if (last) open(last.id);
-  else listRides();
-}
+    async function addFiles(files) {
+      let added = 0, failed = [], last = null;
+      for (const file of files) {
+        try { last = await add(file.name, await file.arrayBuffer()); added++; } catch (error) { failed.push(`${file.name}: ${error.message}`); }
+      }
+      status(`${added ? `Added ${added} ride${added > 1 ? 's' : ''}.` : ''}${failed.length ? ` Not read: ${failed.join('; ')}` : ''}` +
+        (state.rides.some(r => r.unsaved) ? ' This browser doesn\'t keep files here: they are gone when the page closes.' : ''), failed.length && !added);
+      if (last) open(last.id);
+      else listRides();
+    }
 
-async function remove(id) {
-  state.rides = state.rides.filter(r => r.id !== id);
-  try { await dbRun('readwrite', s => s.delete(id)); } catch (error) { }
-  if (state.open === id) { state.open = null; state.ride = null; state.range = null; showRide(); }
-  listRides();
-  save();
-}
+    async function remove(id) {
+      state.rides = state.rides.filter(r => r.id !== id);
+      try { await dbRun('readwrite', s => s.delete(id)); } catch (error) { }
+      if (state.open === id) { state.open = null; state.ride = null; state.range = null; showRide(); }
+      listRides();
+      save();
+    }
 
-function open(id) {
-  const entry = state.rides.find(r => r.id === id);
-  if (!entry) return;
-  try {
-    state.ride = rideFrom(parseFit(entry.buffer), entry.fileName);
-  } catch (error) {
-    status(`${entry.fileName}: ${error.message}`, true);
-    return;
-  }
-  state.open = id; state.range = null; state.hover = -1;
-  listRides();
-  showRide();
-  save();
-}
+    function open(id) {
+      const entry = state.rides.find(r => r.id === id);
+      if (!entry) return;
+      try {
+        state.ride = rideFrom(parseFit(entry.buffer), entry.fileName);
+      } catch (error) {
+        status(`${entry.fileName}: ${error.message}`, true);
+        return;
+      }
+      state.open = id; state.range = null; state.hover = -1;
+      listRides();
+      showRide();
+      save();
+    }
 
-function listRides() {
-  const week = Date.now() - 7 * 86400000, recent = state.rides.filter(r => r.start >= week);
-  const time = recent.reduce((t, r) => t + r.seconds, 0), tss = recent.reduce((t, r) => t + (r.tss || 0), 0);
-  $('week').innerHTML = state.rides.length ? `Last 7 days: <b>${recent.length}</b> ride${recent.length === 1 ? '' : 's'}, <b>${clock(time)}</b>, TSS <b>${Math.round(tss)}</b>` : 'No rides yet.';
-  $('rides').innerHTML = state.rides.map(r => `<div class="ride${r.id === state.open ? ' selected' : ''}" data-id="${esc(r.id)}">` +
-    `<b>${esc(r.name)}</b><button data-remove="${esc(r.id)}" title="Remove from the list" aria-label="Remove">×</button>` +
-    `<span>${day(r.start)} · ${clock(r.seconds)} · ${km(r.distance)}${r.power != null ? ` · ${Math.round(r.power)} W` : ''}${r.tss != null ? ` · TSS ${Math.round(r.tss)}` : ''}</span></div>`).join('');
-}
+    function listRides() {
+      const week = Date.now() - 7 * 86400000, recent = state.rides.filter(r => r.start >= week);
+      const time = recent.reduce((t, r) => t + r.seconds, 0), tss = recent.reduce((t, r) => t + (r.tss || 0), 0);
+      $('week').innerHTML = state.rides.length ? `Last 7 days: <b>${recent.length}</b> ride${recent.length === 1 ? '' : 's'}, <b>${clock(time)}</b>, TSS <b>${Math.round(tss)}</b>` : 'No rides yet.';
+      $('rides').innerHTML = state.rides.map(r => `<div class="ride${r.id === state.open ? ' selected' : ''}" data-id="${esc(r.id)}">` +
+        `<b>${esc(r.name)}</b><button data-remove="${esc(r.id)}" title="Remove from the list" aria-label="Remove">×</button>` +
+        `<span>${day(r.start)} · ${clock(r.seconds)} · ${km(r.distance)}${r.power != null ? ` · ${Math.round(r.power)} W` : ''}${r.tss != null ? ` · TSS ${Math.round(r.tss)}` : ''}</span></div>`).join('');
+    }
 
-$('rides').addEventListener('click', e => {
-  const removing = e.target.closest('[data-remove]');
-  if (removing) { e.stopPropagation(); remove(removing.dataset.remove); return; }
-  const row = e.target.closest('.ride');
-  if (row) open(row.dataset.id);
-});
+    $('rides').addEventListener('click', e => {
+      const removing = e.target.closest('[data-remove]');
+      if (removing) { e.stopPropagation(); remove(removing.dataset.remove); return; }
+      const row = e.target.closest('.ride');
+      if (row) open(row.dataset.id);
+    });
 
 
-function status(text, error = false) {
-  $('status').textContent = text;
-  $('status').classList.toggle('error', !!error);
-}
+    function status(text, error = false) {
+      $('status').textContent = text;
+      $('status').classList.toggle('error', !!error);
+    }
 
-$('pick').addEventListener('click', () => $('file').click());
-$('file').addEventListener('change', e => { addFiles([...e.target.files]); e.target.value = ''; });
-const drop = $('drop');
-for (const name of ['dragenter', 'dragover']) document.addEventListener(name, e => { e.preventDefault(); drop.classList.add('over'); });
-for (const name of ['dragleave', 'drop']) document.addEventListener(name, e => { e.preventDefault(); if (name === 'drop' || !e.relatedTarget) drop.classList.remove('over'); });
-document.addEventListener('drop', e => { if (e.dataTransfer?.files?.length) addFiles([...e.dataTransfer.files]); });
+    $('pick').addEventListener('click', () => $('file').click());
+    $('file').addEventListener('change', e => { addFiles([...e.target.files]); e.target.value = ''; });
+    const drop = $('drop');
+    for (const name of ['dragenter', 'dragover']) document.addEventListener(name, e => { e.preventDefault(); drop.classList.add('over'); });
+    for (const name of ['dragleave', 'drop']) document.addEventListener(name, e => { e.preventDefault(); if (name === 'drop' || !e.relatedTarget) drop.classList.remove('over'); });
+    document.addEventListener('drop', e => { if (e.dataTransfer?.files?.length) addFiles([...e.dataTransfer.files]); });
 
-function setting(id, key, low, high) {
-  $(id).addEventListener('input', e => {
-    const v = Number(e.target.value);
-    const ok = Number.isFinite(v) && v >= low && v <= high;
-    e.target.classList.toggle('invalid', !ok);
-    if (!ok) return;
-    state[key] = v;
-    save();
-    for (const r of state.rides) if (r.power != null) try { r.tss = analyze(rideFrom(parseFit(r.buffer), r.fileName)).tss; } catch (error) { }
-    listRides();
-    showRide();
-  });
-}
-setting('ftp', 'ftp', 50, 999);
-setting('max-hr', 'maxHr', 100, 240);
+    function setting(id, key, low, high) {
+      $(id).addEventListener('input', e => {
+        const v = Number(e.target.value);
+        const ok = Number.isFinite(v) && v >= low && v <= high;
+        e.target.classList.toggle('invalid', !ok);
+        if (!ok) return;
+        state[key] = v;
+        save();
+        for (const r of state.rides) if (r.power != null) try { r.tss = analyze(rideFrom(parseFit(r.buffer), r.fileName)).tss; } catch (error) { }
+        listRides();
+        showRide();
+      });
+    }
+    setting('ftp', 'ftp', 50, 999);
+    setting('max-hr', 'maxHr', 100, 240);
 
-function save() {
-  try { localStorage.setItem(STORE, JSON.stringify({ftp: state.ftp, maxHr: state.maxHr, open: state.open})); } catch (error) { }
-}
+    function save() {
+      try { localStorage.setItem(STORE, JSON.stringify({ ftp: state.ftp, maxHr: state.maxHr, open: state.open })); } catch (error) { }
+    }
 
-async function restore() {
-  try {
-    const s = JSON.parse(localStorage.getItem(STORE) || 'null')
-      || JSON.parse(localStorage.getItem('mfd-workout-builder') || 'null') || {};
-    if (s.ftp >= 50 && s.ftp <= 999) state.ftp = Number(s.ftp);
-    if (s.maxHr >= 100 && s.maxHr <= 240) state.maxHr = Number(s.maxHr);
-    state.open = s.open || null;
-  } catch (error) { }
-  $('ftp').value = state.ftp;
-  $('max-hr').value = state.maxHr;
-  try { state.rides = (await dbRun('readonly', s => s.getAll())).sort((a, b) => b.start - a.start); } catch (error) { state.rides = []; }
-  listRides();
-  if (state.open && state.rides.some(r => r.id === state.open)) open(state.open);
-  else if (state.rides.length) open(state.rides[0].id);
-  else showRide();
-}
+    async function restore() {
+      try {
+        const s = JSON.parse(localStorage.getItem(STORE) || 'null')
+          || JSON.parse(localStorage.getItem('mfd-workout-builder') || 'null') || {};
+        if (s.ftp >= 50 && s.ftp <= 999) state.ftp = Number(s.ftp);
+        if (s.maxHr >= 100 && s.maxHr <= 240) state.maxHr = Number(s.maxHr);
+        state.open = s.open || null;
+      } catch (error) { }
+      $('ftp').value = state.ftp;
+      $('max-hr').value = state.maxHr;
+      try { state.rides = (await dbRun('readonly', s => s.getAll())).sort((a, b) => b.start - a.start); } catch (error) { state.rides = []; }
+      listRides();
+      if (state.open && state.rides.some(r => r.id === state.open)) open(state.open);
+      else if (state.rides.length) open(state.rides[0].id);
+      else showRide();
+    }
 
-window.rides = {parseFit, rideFrom, analyze, best, normalized, add: async (name, buffer) => { const e = await add(name, buffer); open(e.id); return e; }, state};
-restore();
-</script>
+    window.rides = { parseFit, rideFrom, analyze, best, normalized, add: async (name, buffer) => { const e = await add(name, buffer); open(e.id); return e; }, state };
+    restore();
+  </script>
 </body>
+
 </html>

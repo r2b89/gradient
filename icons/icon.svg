@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#18202b"/>
+      <stop offset="1" stop-color="#0b0f14"/>
+    </radialGradient>
+  </defs>
+  <rect width="100" height="100" rx="22" fill="url(#bg)"/>
+  <path d="M28.08,74.92 A31,31 0 0,1 19.419,58.078" fill="none" stroke="#8e959f" stroke-width="9" stroke-linecap="butt"/>
+  <path d="M19.166,56.202 A31,31 0 0,1 23.057,37.668" fill="none" stroke="#2f8cff" stroke-width="9" stroke-linecap="butt"/>
+  <path d="M24.043,36.051 A31,31 0 0,1 38.746,24.115" fill="none" stroke="#2fc26b" stroke-width="9" stroke-linecap="butt"/>
+  <path d="M40.531,23.482 A31,31 0 0,1 59.469,23.482" fill="none" stroke="#ffd23f" stroke-width="9" stroke-linecap="butt"/>
+  <path d="M61.254,24.115 A31,31 0 0,1 75.957,36.051" fill="none" stroke="#ff8a1f" stroke-width="9" stroke-linecap="butt"/>
+  <path d="M76.943,37.668 A31,31 0 0,1 80.834,56.202" fill="none" stroke="#ef3b36" stroke-width="9" stroke-linecap="butt"/>
+  <path d="M80.581,58.078 A31,31 0 0,1 71.92,74.92" fill="none" stroke="#b04dff" stroke-width="9" stroke-linecap="butt"/>
+  <path d="M61.75,32.648 L47.229,51.4 L46.5,59.062 L52.771,54.6 Z" fill="#ffffff"/>
+  <path d="M44.8,53 A5.2,5.2 0 1,0 55.2,53 A5.2,5.2 0 1,0 44.8,53 Z" fill="#ffffff"/>
+  <path d="M47.8,53 A2.2,2.2 0 1,0 52.2,53 A2.2,2.2 0 1,0 47.8,53 Z" fill="#0b0f14"/>
+</svg>

@@ -3,1043 +3,1484 @@
   Copyright (c) 2026 Alex Kasianov. All rights reserved.
 -->
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Workout Builder</title>
-<style>
-  :root {
-    --bg: #f5f6f8; --panel: #ffffff; --text: #1b1f24; --muted: #5f6b7a; --line: #dde1e6;
-    --accent: #1f6feb; --accent-text: #ffffff; --field: #ffffff; --danger: #c62828; --warn: #b26a00;
-    --chart-bg: #ffffff; --chart-grid: #e6e9ed; --selected: rgba(31, 111, 235, .08);
-  }
-  @media (prefers-color-scheme: dark) {
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="icons/site.webmanifest">
+  <meta name="theme-color" content="#0b0f14">
+  <title>Workout Builder</title>
+  <style>
     :root {
-      --bg: #0e1116; --panel: #161b22; --text: #e6edf3; --muted: #8b96a3; --line: #2b313b;
-      --accent: #2f81f7; --accent-text: #ffffff; --field: #0d1117; --danger: #ff6b6b; --warn: #f0a33a;
-      --chart-bg: #0d1117; --chart-grid: #222831; --selected: rgba(47, 129, 247, .14);
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --text: #1b1f24;
+      --muted: #5f6b7a;
+      --line: #dde1e6;
+      --accent: #1f6feb;
+      --accent-text: #ffffff;
+      --field: #ffffff;
+      --danger: #c62828;
+      --warn: #b26a00;
+      --chart-bg: #ffffff;
+      --chart-grid: #e6e9ed;
+      --selected: rgba(31, 111, 235, .08);
     }
-  }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
-  body {
-    background: var(--bg); color: var(--text);
-    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    display: grid; grid-template-rows: auto 1fr; height: 100vh;
-  }
-  header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
-  header h1 { font-size: 16px; margin: 0; }
-  header p { margin: 0; color: var(--muted); font-size: 13px; }
-  nav.pages { display: flex; gap: 4px; }
-  nav.pages a { padding: 2px 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 13px; }
-  nav.pages a:hover { border-color: var(--accent); }
-  nav.pages a[aria-current] { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-  main { display: grid; grid-template-columns: 1fr 340px; min-height: 0; }
-  .work { overflow-y: auto; padding: 12px 16px 24px; min-width: 0; }
-  aside { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; padding: 12px 16px 24px; }
-  section { padding: 10px 0; border-bottom: 1px solid var(--line); }
-  section:last-child { border-bottom: 0; }
-  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
-  label { display: block; font-size: 13px; margin: 6px 0 2px; color: var(--muted); }
-  label.check { display: flex; gap: 6px; align-items: center; }
-  input, select, textarea, button { font: inherit; color: var(--text); }
-  input[type=text], input[type=number], select, textarea {
-    width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--field);
-  }
-  input.invalid { border-color: var(--danger); }
-  input:disabled { opacity: .45; }
-  textarea { resize: vertical; min-height: 48px; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-  .buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  button {
-    padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--field); cursor: pointer;
-  }
-  button:hover { border-color: var(--accent); }
-  button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
-  button:disabled { opacity: .5; cursor: default; }
-  .segmented { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-  .segmented button { flex: 1; border: 0; border-radius: 0; padding: 6px 4px; white-space: nowrap; font-size: 13px; }
-  .segmented button[aria-pressed=true] { background: var(--accent); color: var(--accent-text); }
-  .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .quick button { text-align: left; padding: 5px 8px; font-size: 13px; }
-  .quick i, .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
-  .quick small { color: var(--muted); }
-  .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 12px; }
-  .stat b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
-  .stat span { color: var(--muted); font-size: 12px; }
-  .hint { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
-  .warn { color: var(--warn); font-size: 12px; margin: 6px 0 0; }
-  #status { min-height: 18px; font-size: 13px; color: var(--muted); }
-  #status.error { color: var(--danger); }
-  #chart-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--muted); min-height: 20px; }
-  #chart-head b { color: var(--text); }
-  canvas#chart { width: 100%; height: 220px; display: block; background: var(--chart-bg); border: 1px solid var(--line); border-radius: 6px; touch-action: none; }
-  .legend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--muted); }
-  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
-  #zones { display: flex; height: 10px; border-radius: 3px; overflow: hidden; margin-top: 10px; background: var(--chart-grid); }
-  .steps-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0 6px; }
-  .steps-bar h2 { margin: 0 auto 0 0; }
-  .step, .columns {
-    display: grid; grid-template-columns: 10px 76px 72px 72px 64px minmax(80px, 1fr) auto; gap: 6px; align-items: center;
-  }
-  .columns { font-size: 12px; color: var(--muted); padding: 0 6px 4px; }
-  .step { padding: 4px 6px; border-radius: 6px; border: 1px solid transparent; }
-  .step.selected { background: var(--selected); border-color: var(--accent); }
-  .step input { padding: 4px 6px; }
-  .step .swatch { width: 10px; height: 28px; margin: 0; border-radius: 3px; }
-  .tools { display: flex; gap: 2px; }
-  .tools button { padding: 3px 7px; font-size: 13px; line-height: 1.2; }
-  #empty { color: var(--muted); padding: 16px 6px; }
-  @media (max-width: 820px) {
-    body { height: auto; }
-    main { grid-template-columns: 1fr; }
-    aside { border-left: 0; border-top: 1px solid var(--line); }
-    .columns { display: none; }
-    .step { grid-template-columns: 10px 1fr 1fr 1fr 1fr; padding: 6px; }
-    .step .swatch { grid-row: span 2; height: 100%; }
-    .step .text { grid-column: 2 / 5; }
-    .step .tools { grid-column: 5; justify-content: flex-end; }
-  }
-</style>
-</head>
-<body>
-<header>
-  <h1>Workout Builder</h1>
-  <nav class="pages" aria-label="Builders"><a href="route-builder.html">Routes</a><a href="workout-builder.html" aria-current="page">Workouts</a><a href="rides.html">Rides</a></nav>
-  <p>Steps of a set power or heart rate: the trainer sets the resistance (ERG), so you don't shift. Export a workout for the trainer app.</p>
-</header>
-<main>
-  <div class="work">
-    <div id="chart-head"><span id="chart-info">Drag a step up or down to change its target, its right edge to change its time.</span><span class="legend" id="legend"></span></div>
-    <canvas id="chart" aria-label="Workout profile"></canvas>
-    <div class="steps-bar">
-      <h2>Steps</h2>
-      <button id="scale-down" title="All powers −5 %">−5 %</button>
-      <button id="scale-up" title="All powers +5 %">+5 %</button>
-      <button id="undo" title="Ctrl+Z">Undo</button>
-      <button id="clear">Clear</button>
-    </div>
-    <div class="columns" aria-hidden="true"><span></span><span>Time</span><span id="col-power">Power %</span><span>→ end</span><span>Cadence</span><span>Text</span><span></span></div>
-    <div id="steps"></div>
-    <div id="empty">No steps yet: load a template, or add steps with the buttons on the right.</div>
-  </div>
-  <aside>
-    <section>
-      <h2>Workout</h2>
-      <label for="name">Name</label>
-      <input id="name" type="text" maxlength="63" placeholder="Sweet spot 3x10">
-      <label for="description">Description</label>
-      <textarea id="description" maxlength="159" placeholder="Three 10-minute intervals at 90 % of FTP"></textarea>
-      <div class="row">
-        <div><label for="ftp">Your FTP (W)</label><input id="ftp" type="number" min="50" max="600" step="5" value="250"></div>
-        <div><label for="max-hr">Max heart rate</label><input id="max-hr" type="number" min="100" max="240" step="1" value="185"></div>
-      </div>
-      <div class="row">
-        <div><label>Target</label>
-          <div class="segmented" role="group" aria-label="Target">
-            <button id="metric-power" aria-pressed="true" title="The trainer holds each step's power">Power</button>
-            <button id="metric-heart" aria-pressed="false" title="The trainer's power follows your heart rate">Heart rate</button>
-          </div>
-        </div>
-        <div><label>In</label>
-          <div class="segmented" role="group" aria-label="Target in">
-            <button id="unit-pct" aria-pressed="true">% FTP</button>
-            <button id="unit-abs" aria-pressed="false">Watts</button>
-          </div>
-        </div>
-      </div>
-      <p class="hint" id="unit-hint"></p>
-      <div id="status" role="status"></div>
-    </section>
-    <section>
-      <h2>Templates</h2>
-      <select id="template" aria-label="Template"></select>
-      <p class="hint" id="template-info"></p>
-      <div class="buttons"><button id="load-template" class="primary">Load</button></div>
-    </section>
-    <section>
-      <h2>Add a step</h2>
-      <div class="quick" id="quick"></div>
-      <p class="hint">Added after the selected step (or at the end).</p>
-    </section>
-    <section>
-      <h2>Interval set</h2>
-      <div class="row">
-        <div><label for="set-reps">Repeats</label><input id="set-reps" type="number" min="1" max="50" value="5"></div>
-        <div><label for="set-sets">Sets</label><input id="set-sets" type="number" min="1" max="10" value="1"></div>
-      </div>
-      <div class="row3">
-        <div><label for="on-time">On</label><input id="on-time" type="text" value="3:00"></div>
-        <div><label for="on-power">Power (%)</label><input id="on-power" type="number" min="0" step="any" value="115"></div>
-        <div><label for="on-cadence">Cadence</label><input id="on-cadence" type="number" min="0" max="200" placeholder="–"></div>
-      </div>
-      <div class="row3">
-        <div><label for="off-time">Off</label><input id="off-time" type="text" value="3:00"></div>
-        <div><label for="off-power">Power (%)</label><input id="off-power" type="number" min="0" step="any" value="50"></div>
-        <div><label for="set-rest">Between sets</label><input id="set-rest" type="text" value="5:00"></div>
-      </div>
-      <label for="set-label">Text</label>
-      <input id="set-label" type="text" maxlength="40" value="VO2 max">
-      <div class="buttons"><button id="add-set">Add set</button></div>
-    </section>
-    <section>
-      <h2>Ladder</h2>
-      <div class="row3">
-        <div><label for="ladder-from">From</label><input id="ladder-from" type="number" min="0" step="any" value="90"></div>
-        <div><label for="ladder-to">To</label><input id="ladder-to" type="number" min="0" step="any" value="120"></div>
-        <div><label for="ladder-count">Steps</label><input id="ladder-count" type="number" min="2" max="40" value="4"></div>
-      </div>
-      <div class="row3">
-        <div><label for="ladder-time">Each</label><input id="ladder-time" type="text" value="2:00"></div>
-        <div><label for="ladder-rest">Rest</label><input id="ladder-rest" type="text" value="1:00" placeholder="none"></div>
-        <div><label for="ladder-rest-power">Rest power</label><input id="ladder-rest-power" type="number" min="0" step="any" value="50"></div>
-      </div>
-      <label class="check"><input id="ladder-back" type="checkbox"> and back down (a pyramid)</label>
-      <div class="buttons"><button id="add-ladder">Add ladder</button></div>
-    </section>
-    <section>
-      <h2>Summary</h2>
-      <div class="stats">
-        <div class="stat"><b id="s-time">–</b><span>time</span></div>
-        <div class="stat"><b id="s-avg">–</b><span>average</span></div>
-        <div class="stat"><b id="s-np">–</b><span id="s-np-label">normalized</span></div>
-        <div class="stat"><b id="s-if">–</b><span>intensity (IF)</span></div>
-        <div class="stat"><b id="s-tss">–</b><span>stress (TSS)</span></div>
-        <div class="stat"><b id="s-kj">–</b><span>work</span></div>
-      </div>
-      <div id="zones"></div>
-      <div id="warnings"></div>
-    </section>
-    <section>
-      <h2>Import and export</h2>
-      <input id="file" type="file" accept=".csv,.txt">
-      <p class="hint">A workout CSV (an interval workout), to change it. It replaces the steps.</p>
-      <div class="buttons"><button id="export" class="primary" disabled>Export CSV</button></div>
-      <p class="hint">Run it with <code>trainer --workout file.csv</code>, drop the file on the trainer's window, or add it on the phones' TRAININGS page.</p>
-    </section>
-  </aside>
-</main>
-<script>
-'use strict';
-const STORE = 'mfd-workout-builder';
-const TEXT_MAX = 47;
-const STEPS_MAX = 1000;
 
-const ZONES = [
-  {top: 55, color: '#8e959f', name: 'Recovery'},
-  {top: 75, color: '#2f8cff', name: 'Endurance'},
-  {top: 90, color: '#2fc26b', name: 'Tempo'},
-  {top: 105, color: '#ffd23f', name: 'Threshold'},
-  {top: 120, color: '#ff8a1f', name: 'VO2 max'},
-  {top: 150, color: '#ef3b36', name: 'Anaerobic'},
-  {top: Infinity, color: '#b04dff', name: 'Neuromuscular'}
-];
-const HEART_ZONES = [
-  {top: 60, color: '#8e959f', name: 'Recovery'},
-  {top: 70, color: '#2f8cff', name: 'Endurance'},
-  {top: 80, color: '#2fc26b', name: 'Aerobic'},
-  {top: 90, color: '#ff8a1f', name: 'Threshold'},
-  {top: Infinity, color: '#ef3b36', name: 'Maximum'}
-];
-const FREE_COLOR = '#6b7480';
-
-const METRICS = {
-  power: {name: 'power', short: 'Power', abs: 'W', relName: '% FTP', absName: 'Watts', ref: () => state.ftp, snap: 5,
-          zones: ZONES, base: 0, low: 160, free: 50, rest: 50, grid: 25, labels: 50, max: {rel: 300, abs: 2000}},
-  heart: {name: 'heart rate', short: 'HR', abs: 'bpm', relName: '% max', absName: 'bpm', ref: () => state.maxHr, snap: 1,
-          zones: HEART_ZONES, base: 40, low: 100, free: 60, rest: 62, grid: 10, labels: 20, max: {rel: 100, abs: 240}}
-};
-const metric = () => METRICS[state.metric];
-const absolute = () => state.unit === 'abs';
-const zoneOf = pct => metric().zones.findIndex(z => pct < z.top);
-
-const heartToPower = h => 45 + (h - 60) / 30 * 55;
-const powerToHeart = p => 60 + (p - 45) / 55 * 30;
-
-const $ = id => document.getElementById(id);
-const state = {
-  name: '', description: '', ftp: 250, maxHr: 185,
-  metric: 'power',
-  unit: '%',
-  steps: [],
-  selected: -1,
-  history: []
-};
-
-
-const min = m => m * 60;
-function parseDuration(text) {
-  text = String(text).trim();
-  if (/^\d+(\.\d+)?$/.test(text)) return Number(text);
-  let m = /^(?:(\d+):)?(\d{1,3}):(\d{1,2})$/.exec(text);
-  if (!m || Number(m[3]) > 59) return NaN;
-  return (Number(m[1]) || 0) * 3600 + Number(m[2]) * 60 + Number(m[3]);
-}
-function formatDuration(s) {
-  s = Math.round(s);
-  let h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, sec = String(s % 60).padStart(2, '0');
-  return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
-}
-const round1 = v => Math.round(v * 10) / 10;
-const pctOf = v => absolute() ? v / metric().ref() * 100 : v;
-const absOf = v => absolute() ? v : v * metric().ref() / 100;
-const fromPct = p => absolute() ? Math.round(p * metric().ref() / 100 / metric().snap) * metric().snap : p;
-const unitName = () => absolute() ? metric().abs : '%';
-const unitText = () => ' ' + unitName();
-function targetText(s) {
-  if (s.power == null) return 'free';
-  let p = s.end != null && s.end !== s.power ? `${round1(s.power)}→${round1(s.end)}` : `${round1(s.power)}`;
-  if (absolute()) return `${p} ${metric().abs}`;
-  let a = s.end != null && s.end !== s.power ? `${Math.round(absOf(s.power))}→${Math.round(absOf(s.end))}` : Math.round(absOf(s.power));
-  return `${p} % (${a} ${metric().abs})`;
-}
-function convertValue(v, from, to) {
-  if (v == null) return null;
-  if (from.metric === to.metric && from.unit === to.unit) return v;
-  let pct = from.unit === 'abs' ? v / METRICS[from.metric].ref() * 100 : v;
-  if (from.metric !== to.metric) pct = from.metric === 'power' ? powerToHeart(pct) : heartToPower(pct);
-  let m = METRICS[to.metric];
-  return to.unit === 'abs' ? Math.round(pct * m.ref() / 100 / m.snap) * m.snap : round1(pct);
-}
-const kind = () => ({metric: state.metric, unit: state.unit});
-const stepPct = s => s.power == null ? null : (pctOf(s.power) + pctOf(s.end ?? s.power)) / 2;
-const stepColor = s => s.power == null ? FREE_COLOR : metric().zones[zoneOf(stepPct(s))].color;
-const step = (duration, power, end = null, cadence = null, text = '') => ({duration, power, end, cadence, text});
-const escapeHtml = t => String(t).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-
-function status(text, error) {
-  $('status').textContent = text || '';
-  $('status').classList.toggle('error', !!error);
-}
-
-
-const warmUp = () => [step(min(10), 45, 70, null, 'Warm up')];
-const coolDown = () => [step(min(10), 60, 40, null, 'Cool down')];
-function repeats(count, on, off, offAfterLast = true) {
-  let out = [];
-  for (let i = 0; i < count; i++) { out.push({...on}); if (i < count - 1 || offAfterLast) out.push({...off}); }
-  return out;
-}
-const TEMPLATES = [
-  {group: 'Base', name: 'Endurance 1h', description: 'An hour in zone 2 at a steady, easy pace: builds the aerobic base',
-   steps: () => [step(min(10), 45, 65, null, 'Warm up'), step(min(45), 68, null, 90, 'Endurance'), step(min(5), 55, 40, null, 'Cool down')]},
-  {group: 'Base', name: 'Recovery spin', description: '30 minutes very easy with a high cadence, for the day after a hard one',
-   steps: () => [step(min(5), 40, 50, null, 'Easy'), step(min(20), 50, null, 95, 'Spin'), step(min(5), 50, 35, null, 'Easy')]},
-  {group: 'Base', name: 'Tempo 2x20', description: 'Two 20-minute blocks in zone 3 (83 % of FTP) with 5 minutes easy',
-   steps: () => [...warmUp(), ...repeats(2, step(min(20), 83, null, 90, 'Tempo'), step(min(5), 55, null, null, 'Recovery'), false), ...coolDown()]},
-  {group: 'Threshold', name: 'Sweet spot 3x10', description: 'Three 10-minute intervals at 90 % of FTP with 5 minutes easy between them',
-   steps: () => [...warmUp(), step(min(5), 65, null, null, 'Endurance'), ...repeats(3, step(min(10), 90, null, 90, 'Sweet spot'), step(min(5), 55, null, null, 'Recovery')), ...coolDown()]},
-  {group: 'Threshold', name: 'Sweet spot 2x20', description: 'Two 20-minute intervals at 90 % of FTP with 5 minutes easy',
-   steps: () => [...warmUp(), ...repeats(2, step(min(20), 90, null, 90, 'Sweet spot'), step(min(5), 55, null, null, 'Recovery')), ...coolDown()]},
-  {group: 'Threshold', name: 'Threshold 2x20', description: 'Two 20-minute intervals at 97 % of FTP: the classic FTP builder',
-   steps: () => [...warmUp(), ...repeats(3, step(30, 105, null, 100, 'Opener'), step(30, 55, null, null, 'Easy')), step(min(3), 55),
-                 ...repeats(2, step(min(20), 97, null, 90, 'Threshold'), step(min(8), 55, null, null, 'Recovery')), ...coolDown()]},
-  {group: 'Threshold', name: 'Over-unders 3x9', description: 'Three 9-minute sets swinging 2 minutes at 95 % and 1 minute at 108 %: clearing lactate above threshold',
-   steps: () => {
-     let out = [...warmUp()];
-     for (let s = 0; s < 3; s++) {
-       out.push(...repeats(3, step(min(2), 95, null, 90, 'Under'), step(min(1), 108, null, 95, 'Over'), false));
-       out.push(step(min(5), 55, null, null, 'Recovery'));
-     }
-     return [...out, ...coolDown()];
-   }},
-  {group: 'VO2 max', name: 'VO2 max 5x3', description: 'Five 3-minute efforts at 115 % of FTP, 3 minutes easy between them',
-   steps: () => [step(min(12), 45, 70, null, 'Warm up'), step(min(1), 100, null, null, 'Opener'), step(min(4), 50, null, null, 'Easy'),
-                 ...repeats(5, step(min(3), 115, null, 100, 'VO2 max'), step(min(3), 50, null, null, 'Recovery')), ...coolDown()]},
-  {group: 'VO2 max', name: '30/30s 2x10', description: 'Two sets of ten 30 seconds at 125 % with 30 seconds easy: VO2 max time with short efforts',
-   steps: () => [...warmUp(), step(min(5), 65, null, null, 'Endurance'),
-                 ...repeats(10, step(30, 125, null, 100, '30 on'), step(30, 50, null, null, '30 off'), false), step(min(6), 50, null, null, 'Recovery'),
-                 ...repeats(10, step(30, 125, null, 100, '30 on'), step(30, 50, null, null, '30 off'), false), ...coolDown()]},
-  {group: 'VO2 max', name: 'Pyramid 1-2-3-4-3-2-1', description: 'Efforts at 110 % growing from 1 to 4 minutes and back, the same time easy after each',
-   steps: () => {
-     let out = [...warmUp(), step(min(5), 65, null, null, 'Endurance')];
-     for (let m of [1, 2, 3, 4, 3, 2, 1]) out.push(step(min(m), 110, null, 95, `${m} min`), step(min(m), 50, null, null, 'Recovery'));
-     return [...out, ...coolDown()];
-   }},
-  {group: 'Tests', name: 'FTP test (20 min)', description: 'A 20-minute free effort (a flat road: shift and pace it yourself, as hard as you can hold); your FTP is about 95 % of its average power',
-   steps: () => [step(min(10), 45, 70, null, 'Warm up'), ...repeats(3, step(min(1), 110, null, 100, 'Opener'), step(min(1), 50, null, null, 'Easy')),
-                 step(min(5), 50, null, null, 'Easy'), step(min(5), null, null, null, 'All out 5 min'), step(min(10), 50, null, null, 'Recovery'),
-                 step(min(20), null, null, null, '20 min test'), step(min(10), 50, 40, null, 'Cool down')]},
-  {group: 'Heart rate', metric: 'heart', name: 'Zone 2 by heart rate', description: '40 minutes at 72 % of your max heart rate: the trainer sets the power that keeps your heart there, so it eases off as you drift',
-   steps: () => [step(min(10), 60, 70, 90, 'Warm up'), step(min(40), 72, null, 90, 'Zone 2'), step(min(10), 65, 58, null, 'Cool down')]},
-  {group: 'Heart rate', metric: 'heart', name: 'Aerobic 3x10 by heart rate', description: 'Three 10 minutes at 82 % of your max heart rate with 5 minutes at 65 %: the power follows how your heart answers today',
-   steps: () => [step(min(10), 60, 72, null, 'Warm up'), ...repeats(3, step(min(10), 82, null, 90, 'Aerobic'), step(min(5), 65, null, null, 'Recovery')), step(min(8), 65, 58, null, 'Cool down')]},
-  {group: 'Heart rate', metric: 'heart', name: 'Heart rate progression', description: 'Fifteen minutes each at 65, 72 and 78 % of your max heart rate, then easy',
-   steps: () => [step(min(8), 58, 65, null, 'Warm up'), step(min(15), 65, null, 90, 'Easy'), step(min(15), 72, null, 90, 'Steady'), step(min(15), 78, null, 90, 'Strong'), step(min(10), 65, 58, null, 'Cool down')]},
-  {group: 'Tests', name: 'Ramp test', abs: true, description: "+20 W every minute from 100 W until you can't hold it; your FTP is about 75 % of the last full minute's power. Stop with N or Esc when done.",
-   steps: () => {
-     let out = [step(min(5), 100, null, null, 'Warm up')];
-     for (let i = 1; i <= 27; i++) out.push(step(min(1), 80 + 20 * i, null, null, `Step ${i}`));
-     return [...out, step(min(5), null, null, null, 'Cool down')];
-   }}
-];
-
-
-const QUICK_HEART = [
-  {label: 'Warm up', make: () => step(min(10), 60, 70, null, 'Warm up')},
-  {label: 'Cool down', make: () => step(min(10), 68, 58, null, 'Cool down')},
-  {label: 'Recovery', make: () => step(min(5), 58, null, null, 'Recovery')},
-  {label: 'Endurance', make: () => step(min(20), 68, null, 90, 'Endurance')},
-  {label: 'Aerobic', make: () => step(min(10), 76, null, 90, 'Aerobic')},
-  {label: 'Tempo', make: () => step(min(10), 82, null, 90, 'Tempo')},
-  {label: 'Threshold', make: () => step(min(8), 88, null, 90, 'Threshold')},
-  {label: 'Free ride', make: () => step(min(5), null, null, null, 'Free ride')}
-];
-const QUICK = [
-  {label: 'Warm up', make: () => step(min(10), 45, 70, null, 'Warm up')},
-  {label: 'Cool down', make: () => step(min(10), 60, 40, null, 'Cool down')},
-  {label: 'Recovery', make: () => step(min(5), 50, null, null, 'Recovery')},
-  {label: 'Endurance', make: () => step(min(20), 68, null, 90, 'Endurance')},
-  {label: 'Tempo', make: () => step(min(10), 83, null, 90, 'Tempo')},
-  {label: 'Sweet spot', make: () => step(min(10), 90, null, 90, 'Sweet spot')},
-  {label: 'Threshold', make: () => step(min(8), 100, null, 90, 'Threshold')},
-  {label: 'VO2 max', make: () => step(min(3), 115, null, 100, 'VO2 max')},
-  {label: 'Anaerobic', make: () => step(min(1), 130, null, 105, 'Anaerobic')},
-  {label: 'Free ride', make: () => step(min(5), null, null, null, 'Free ride')}
-];
-const quickSteps = () => state.metric === 'heart' ? QUICK_HEART : QUICK;
-const inUnit = s => ({...s, power: s.power == null ? null : fromPct(s.power), end: s.end == null ? null : fromPct(s.end)});
-
-
-const snapshot = () => JSON.stringify({metric: state.metric, unit: state.unit, steps: state.steps, name: state.name, description: state.description});
-function remember(shot = snapshot()) {
-  state.history.push(shot);
-  if (state.history.length > 100) state.history.shift();
-  $('undo').disabled = false;
-}
-function undo() {
-  let shot = state.history.pop();
-  $('undo').disabled = !state.history.length;
-  if (!shot) return;
-  let s = JSON.parse(shot);
-  convertHelpers({metric: s.metric || 'power', unit: s.unit});
-  Object.assign(state, {metric: s.metric || 'power', unit: s.unit, steps: s.steps, name: s.name, description: s.description});
-  state.selected = Math.min(state.selected, state.steps.length - 1);
-  $('name').value = state.name; $('description').value = state.description;
-  update();
-}
-function save() {
-  try {
-    let helpers = Object.fromEntries(HELPER_INPUTS.map(id => [id, $(id).type === 'checkbox' ? $(id).checked : $(id).value]));
-    localStorage.setItem(STORE, JSON.stringify({name: state.name, description: state.description, ftp: state.ftp, maxHr: state.maxHr,
-                                                metric: state.metric, unit: state.unit, steps: state.steps, helpers}));
-  } catch (e) { }
-}
-function restore() {
-  try {
-    let s = JSON.parse(localStorage.getItem(STORE) || 'null');
-    if (!s || !Array.isArray(s.steps)) return;
-    Object.assign(state, {name: s.name || '', description: s.description || '', ftp: Number(s.ftp) || 250, maxHr: Number(s.maxHr) || 185,
-                          metric: s.metric === 'heart' ? 'heart' : 'power', unit: s.unit === 'abs' || s.unit === 'W' ? 'abs' : '%',
-                          steps: s.steps.filter(x => x && x.duration > 0)});
-    for (let [id, v] of Object.entries(s.helpers || {})) if (HELPER_INPUTS.includes(id)) $(id).type === 'checkbox' ? $(id).checked = !!v : $(id).value = v;
-  } catch (e) { }
-}
-
-
-function insert(steps) {
-  if (state.steps.length + steps.length > STEPS_MAX) return status(`A workout has at most ${STEPS_MAX} steps.`, true);
-  remember();
-  let at = state.selected >= 0 ? state.selected + 1 : state.steps.length;
-  state.steps.splice(at, 0, ...steps);
-  state.selected = at + steps.length - 1;
-  status('');
-  update();
-  scrollToSelected();
-}
-const HELPER_INPUTS = ['set-reps', 'set-sets', 'on-time', 'on-power', 'on-cadence', 'off-time', 'off-power', 'set-rest', 'set-label',
-                       'ladder-from', 'ladder-to', 'ladder-count', 'ladder-time', 'ladder-rest', 'ladder-rest-power', 'ladder-back'];
-const HELPER_POWERS = ['on-power', 'off-power', 'ladder-from', 'ladder-to', 'ladder-rest-power'];
-function convertHelpers(to) {
-  let from = kind();
-  for (let id of HELPER_POWERS) if ($(id).value.trim() !== '' && Number.isFinite(Number($(id).value))) $(id).value = convertValue(Number($(id).value), from, to);
-}
-function convertTo(to) {
-  let from = kind(), c = v => convertValue(v, from, to);
-  state.steps = state.steps.map(s => ({...s, power: c(s.power), end: c(s.end)}));
-  convertHelpers(to);
-  state.metric = to.metric;
-  state.unit = to.unit;
-}
-function setUnit(unit) {
-  if (unit === state.unit) return;
-  remember();
-  convertTo({metric: state.metric, unit});
-  update();
-}
-function setMetric(name) {
-  if (name === state.metric) return;
-  remember();
-  convertTo({metric: name, unit: state.unit});
-  if (state.steps.length) status(`The steps were converted to ${METRICS[name].name} with the app's model (45 % of FTP at 60 % of the max heart rate, FTP at 90 %). Undo brings them back.`);
-  update();
-}
-function scale(factor) {
-  if (!state.steps.length) return;
-  remember();
-  let f = v => v == null ? null : absolute() ? Math.round(v * factor) : round1(v * factor);
-  state.steps = state.steps.map(s => ({...s, power: f(s.power), end: f(s.end)}));
-  update();
-}
-
-
-function stepRow(s, i) {
-  let v = x => x == null ? '' : round1(x);
-  return `<div class="step${i === state.selected ? ' selected' : ''}" data-index="${i}">` +
-    `<i class="swatch" style="background:${stepColor(s)}"></i>` +
-    `<input data-field="duration" type="text" inputmode="numeric" value="${formatDuration(s.duration)}" placeholder="m:ss" aria-label="Time">` +
-    `<input data-field="power" type="number" min="0" step="any" value="${v(s.power)}" placeholder="free" aria-label="Power">` +
-    `<input data-field="end" type="number" min="0" step="any" value="${v(s.end)}" placeholder="–" aria-label="End power (a ramp)"${s.power == null ? ' disabled' : ''}>` +
-    `<input data-field="cadence" type="number" min="0" max="200" value="${s.cadence ?? ''}" placeholder="rpm" aria-label="Cadence">` +
-    `<input class="text" data-field="text" type="text" maxlength="${TEXT_MAX}" value="${escapeHtml(s.text)}" placeholder="text" aria-label="Text">` +
-    `<span class="tools"><button data-action="up" title="Earlier" aria-label="Move up"${i ? '' : ' disabled'}>↑</button>` +
-    `<button data-action="down" title="Later" aria-label="Move down"${i < state.steps.length - 1 ? '' : ' disabled'}>↓</button>` +
-    `<button data-action="copy" title="Duplicate" aria-label="Duplicate">⧉</button>` +
-    `<button data-action="delete" title="Remove (Delete)" aria-label="Remove">✕</button></span></div>`;
-}
-function renderSteps() {
-  $('steps').innerHTML = state.steps.map(stepRow).join('');
-  $('empty').hidden = state.steps.length > 0;
-  $('col-power').textContent = `${metric().short} ${unitName()}`;
-}
-function select(index) {
-  if (index === state.selected) return;
-  state.selected = index;
-  for (let row of $('steps').children) row.classList.toggle('selected', Number(row.dataset.index) === index);
-  drawChart();
-}
-function scrollToSelected() {
-  let row = $('steps').children[state.selected];
-  if (row) row.scrollIntoView({block: 'nearest'});
-}
-
-let pending = null;
-$('steps').addEventListener('focusin', e => {
-  let row = e.target.closest('.step');
-  if (row) select(Number(row.dataset.index));
-  if (e.target.dataset.field) pending = snapshot();
-});
-$('steps').addEventListener('click', e => {
-  let row = e.target.closest('.step');
-  if (!row) return;
-  let i = Number(row.dataset.index), action = e.target.closest('[data-action]')?.dataset.action;
-  select(i);
-  if (!action) return;
-  remember();
-  let s = state.steps;
-  if (action === 'up' && i > 0) { [s[i - 1], s[i]] = [s[i], s[i - 1]]; state.selected = i - 1; }
-  else if (action === 'down' && i < s.length - 1) { [s[i + 1], s[i]] = [s[i], s[i + 1]]; state.selected = i + 1; }
-  else if (action === 'copy') { s.splice(i + 1, 0, {...s[i]}); state.selected = i + 1; }
-  else if (action === 'delete') { s.splice(i, 1); state.selected = Math.min(i, s.length - 1); }
-  update();
-});
-$('steps').addEventListener('input', e => {
-  let field = e.target.dataset.field, row = e.target.closest('.step');
-  if (!field || !row) return;
-  let s = state.steps[Number(row.dataset.index)], text = e.target.value.trim(), value, ok = true;
-  if (field === 'duration') { value = parseDuration(text); ok = value >= 1; }
-  else if (field === 'text') value = e.target.value;
-  else {
-    value = text === '' ? null : Number(text);
-    ok = value == null || (Number.isFinite(value) && value >= 0 && (field !== 'cadence' || value <= 200));
-  }
-  e.target.classList.toggle('invalid', !ok);
-  if (!ok) return;
-  if (pending) { remember(pending); pending = null; }
-  s[field] = value;
-  if (field === 'power') row.querySelector('[data-field=end]').disabled = value == null;
-  row.querySelector('.swatch').style.background = stepColor(s);
-  showChanges();
-});
-$('steps').addEventListener('change', e => {
-  let row = e.target.closest('.step');
-  if (!row || !e.target.dataset.field) return;
-  let s = state.steps[Number(row.dataset.index)], field = e.target.dataset.field;
-  e.target.classList.remove('invalid');
-  if (field === 'duration') e.target.value = formatDuration(s.duration);
-  else if (field !== 'text') e.target.value = s[field] == null ? '' : round1(s[field]);
-});
-
-
-const canvas = $('chart'), ctx = canvas.getContext('2d');
-const PAD = {left: 46, right: 10, top: 10, bottom: 22};
-let drag = null, hover = -1;
-
-function geometry() {
-  let w = canvas.clientWidth, h = canvas.clientHeight;
-  let total = state.steps.reduce((t, s) => t + s.duration, 0);
-  let m = metric(), base = m.base;
-  let top = Math.max(m.low, ...state.steps.map(s => s.power == null ? 0 : Math.max(pctOf(s.power), pctOf(s.end ?? s.power)) * 1.08));
-  top = Math.ceil(top / 20) * 20;
-  let plotW = w - PAD.left - PAD.right, plotH = h - PAD.top - PAD.bottom;
-  return {w, h, total, top, base, plotW, plotH,
-          x: t => PAD.left + (total ? t / total : 0) * plotW,
-          y: pct => PAD.top + plotH * (1 - Math.max(0, pct - base) / (top - base))};
-}
-function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-
-function drawChart() {
-  let ratio = window.devicePixelRatio || 1, g = geometry();
-  canvas.width = Math.round(g.w * ratio); canvas.height = Math.round(g.h * ratio);
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  ctx.clearRect(0, 0, g.w, g.h);
-  let grid = cssVar('--chart-grid'), muted = cssVar('--muted'), accent = cssVar('--accent');
-  ctx.font = '11px system-ui, sans-serif';
-  let m = metric(), power = state.metric === 'power';
-  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-  for (let p = g.base; p <= g.top; p += m.grid) {
-    let y = Math.round(g.y(p)) + .5;
-    ctx.strokeStyle = grid; ctx.lineWidth = 1; ctx.setLineDash(power && p === 100 ? [4, 3] : []);
-    if (p === 100) ctx.strokeStyle = muted;
-    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(g.w - PAD.right, y); ctx.stroke();
-    if (p % m.labels === 0) {
-      ctx.fillStyle = muted;
-      ctx.fillText(p === 100 ? (power ? 'FTP' : 'MAX') : absolute() ? `${Math.round(p * m.ref() / 100)} ${m.abs}` : `${p} %`, PAD.left - 6, y);
-    }
-  }
-  ctx.setLineDash([]);
-  if (!g.total) {
-    ctx.textAlign = 'center'; ctx.fillStyle = muted; ctx.font = '13px system-ui, sans-serif';
-    ctx.fillText('The workout\'s profile shows here.', PAD.left + g.plotW / 2, PAD.top + g.plotH / 2);
-    return;
-  }
-  let t = 0, base = g.y(g.base), free = g.y(m.free);
-  state.steps.forEach((s, i) => {
-    let x0 = g.x(t), x1 = g.x(t + s.duration), gap = x1 - x0 > 4 ? 1 : 0;
-    t += s.duration;
-    ctx.beginPath();
-    if (s.power == null) {
-      ctx.rect(x0, free, x1 - x0 - gap, base - free);
-      ctx.globalAlpha = i === hover ? .5 : .3; ctx.fillStyle = FREE_COLOR; ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.save(); ctx.clip(); ctx.strokeStyle = FREE_COLOR; ctx.lineWidth = 1;
-      for (let hx = x0 - (base - free); hx < x1; hx += 6) { ctx.beginPath(); ctx.moveTo(hx, base); ctx.lineTo(hx + base - free, free); ctx.stroke(); }
-      ctx.restore();
-    } else {
-      ctx.moveTo(x0, base); ctx.lineTo(x0, g.y(pctOf(s.power))); ctx.lineTo(x1 - gap, g.y(pctOf(s.end ?? s.power))); ctx.lineTo(x1 - gap, base); ctx.closePath();
-      ctx.globalAlpha = i === hover || i === state.selected ? 1 : .85; ctx.fillStyle = stepColor(s); ctx.fill(); ctx.globalAlpha = 1;
-    }
-    if (i === state.selected) {
-      ctx.strokeStyle = accent; ctx.lineWidth = 2;
-      let top = s.power == null ? g.y(m.free) : Math.min(g.y(pctOf(s.power)), g.y(pctOf(s.end ?? s.power)));
-      ctx.strokeRect(x0 + 1, top - 3, Math.max(2, x1 - x0 - 2), base - top + 2);
-    }
-  });
-  let every = [1, 2, 5, 10, 15, 30, 60].find(m => g.total / 60 / m <= 10) || 120;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = muted;
-  for (let m = 0; m * 60 <= g.total; m += every) {
-    let x = g.x(m * 60);
-    ctx.fillRect(Math.round(x), base, 1, 4);
-    ctx.fillText(m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, '0') : ''}` : `${m}′`, Math.min(Math.max(x, PAD.left + 8), g.w - 12), base + 6);
-  }
-}
-
-function hitTest(e) {
-  let g = geometry(), rect = canvas.getBoundingClientRect(), x = e.clientX - rect.left;
-  if (!g.total || x < PAD.left - 4 || x > g.w - PAD.right + 6) return null;
-  let t = 0;
-  for (let i = 0; i < state.steps.length; i++) {
-    let x1 = g.x(t + state.steps[i].duration);
-    if (Math.abs(x - x1) <= 5) return {index: i, edge: true};
-    if (x < x1) return {index: i, edge: false};
-    t += state.steps[i].duration;
-  }
-  return null;
-}
-function describe(i) {
-  let s = state.steps[i];
-  return `<b>${i + 1}${s.text ? ' · ' + escapeHtml(s.text) : ''}</b> · ${formatDuration(s.duration)} · ${targetText(s)}${s.cadence ? ` · ${s.cadence} rpm` : ''}`;
-}
-canvas.addEventListener('pointerdown', e => {
-  let hit = hitTest(e);
-  if (!hit) return;
-  select(hit.index);
-  scrollToSelected();
-  let s = state.steps[hit.index], g = geometry();
-  drag = {mode: hit.edge ? 'time' : 'power', index: hit.index, x: e.clientX, y: e.clientY, start: {...s},
-          secondsPerPx: g.total / g.plotW, pctPerPx: (g.top - g.base) / g.plotH, shot: snapshot(), moved: false};
-  canvas.setPointerCapture(e.pointerId);
-});
-canvas.addEventListener('pointermove', e => {
-  if (!drag) {
-    let hit = hitTest(e);
-    canvas.style.cursor = !hit ? 'default' : hit.edge ? 'ew-resize' : state.steps[hit.index].power == null ? 'pointer' : 'ns-resize';
-    let index = hit ? hit.index : -1;
-    if (index !== hover) { hover = index; drawChart(); }
-    $('chart-info').innerHTML = hit ? describe(hit.index) : 'Drag a step up or down to change its target, its right edge to change its time.';
-    return;
-  }
-  let s = state.steps[drag.index], dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-  if (!drag.moved && Math.abs(drag.mode === 'time' ? dx : dy) < 3) return;
-  if (drag.mode === 'power') {
-    if (s.power == null) return;
-    let dp = -dy * drag.pctPerPx;
-    dp = absolute() ? Math.round(dp * metric().ref() / 100 / metric().snap) * metric().snap : Math.round(dp);
-    s.power = Math.max(0, drag.start.power + dp);
-    if (s.end != null) s.end = Math.max(0, drag.start.end + dp);
-  } else {
-    let seconds = drag.start.duration + dx * drag.secondsPerPx;
-    let snap = seconds < 120 ? 5 : 15;
-    s.duration = Math.max(5, Math.round(seconds / snap) * snap);
-  }
-  if (!drag.moved) { drag.moved = true; remember(drag.shot); }
-  $('chart-info').innerHTML = describe(drag.index);
-  update(false);
-});
-const endDrag = () => { if (drag && drag.moved) save(); drag = null; };
-canvas.addEventListener('pointerup', endDrag);
-canvas.addEventListener('pointercancel', endDrag);
-canvas.addEventListener('pointerleave', () => { if (!drag && hover >= 0) { hover = -1; drawChart(); } });
-window.addEventListener('resize', drawChart);
-
-
-function summary() {
-  let secs = [], free = metric().free;
-  for (let s of state.steps) {
-    let d = Math.round(s.duration);
-    for (let k = 0; k < d; k++)
-      secs.push(s.power == null ? free : pctOf(s.power) + (pctOf(s.end ?? s.power) - pctOf(s.power)) * (k + .5) / d);
-  }
-  if (!secs.length) return null;
-  let zones = metric().zones.map(() => 0);
-  for (let p of secs) zones[zoneOf(p)]++;
-  let targetAvg = secs.reduce((a, b) => a + b, 0) / secs.length, highest = Math.max(...secs);
-  if (state.metric === 'heart') secs = secs.map(heartToPower);
-  let avg = secs.reduce((a, b) => a + b, 0) / secs.length;
-  let rolled = [], sum = 0;
-  for (let i = 0; i < secs.length; i++) {
-    sum += secs[i];
-    if (i >= 30) sum -= secs[i - 30];
-    if (i >= 29) rolled.push(sum / 30);
-  }
-  if (!rolled.length) rolled = [avg];
-  let np = Math.pow(rolled.reduce((a, b) => a + b ** 4, 0) / rolled.length, 1 / 4);
-  let intensity = np / 100;
-  return {seconds: secs.length, avg, np, targetAvg, highest, intensity, tss: secs.length / 3600 * intensity * intensity * 100,
-          kj: secs.reduce((a, p) => a + p * state.ftp / 100, 0) / 1000, zones};
-}
-function showSummary() {
-  let s = summary(), m = metric(), heart = state.metric === 'heart', zones = m.zones;
-  let shown = p => absolute() ? `${Math.round(p * m.ref() / 100)} ${m.abs}` : `${Math.round(p)} %`;
-  let watts = p => absolute() && !heart ? `${Math.round(p * state.ftp / 100)} W` : `${Math.round(p)} %`;
-  let about = heart ? '≈' : '';
-  $('s-time').textContent = s ? formatDuration(s.seconds) : '–';
-  $('s-avg').textContent = s ? shown(s.targetAvg) : '–';
-  $('s-np-label').textContent = heart ? 'highest' : 'normalized';
-  $('s-np').textContent = s ? (heart ? shown(s.highest) : watts(s.np)) : '–';
-  $('s-if').textContent = s ? about + s.intensity.toFixed(2) : '–';
-  $('s-tss').textContent = s ? about + Math.round(s.tss) : '–';
-  $('s-kj').textContent = s ? `${about}${Math.round(s.kj)} kJ` : '–';
-  $('zones').title = `Time in ${m.name} zones`;
-  $('zones').innerHTML = !s ? '' : s.zones.map((n, i) => n ? `<i style="flex:${n};background:${zones[i].color}" title="Z${i + 1} ${zones[i].name}: ${formatDuration(n)}"></i>` : '').join('');
-  let warnings = [], short = state.steps.filter(x => x.power != null && x.duration < 20).length;
-  let slow = state.steps.filter(x => x.power != null && x.duration < 180).length;
-  let free = state.steps.some(x => x.power == null), textLong = state.steps.some(x => x.text.length > TEXT_MAX);
-  if (heart && slow) warnings.push(`${slow} step${slow > 1 ? 's are' : ' is'} shorter than 3 minutes: the heart takes a minute or two to answer a change of power, so ${slow > 1 ? 'they' : 'it'} won't reach the target.`);
-  if (!heart && short) warnings.push(`${short} step${short > 1 ? 's are' : ' is'} shorter than 20 s: a trainer in ERG takes 5–10 s to reach a new power, so short efforts come out softer. Free steps suit sprints.`);
-  if (heart && s) warnings.push('IF, TSS and work are estimates from the heart rates, with the model the app starts the power from; the ride itself knows better.');
-  if (free) warnings.push(`Free steps are a flat road where you shift yourself; the numbers above count them at ${m.free} %.`);
-  if (state.steps.length > STEPS_MAX) warnings.push(`More than ${STEPS_MAX} steps: the trainer reads the first ${STEPS_MAX}.`);
-  if (textLong) warnings.push(`Texts longer than ${TEXT_MAX} characters are cut.`);
-  $('warnings').innerHTML = warnings.map(w => `<p class="${/^(Free|IF)/.test(w) ? 'hint' : 'warn'}">${w}</p>`).join('');
-}
-
-function showLegend() {
-  $('legend').innerHTML = metric().zones.map((z, i) => `<span><i style="background:${z.color}"></i>Z${i + 1}</span>`).join('') +
-    `<span><i style="background:${FREE_COLOR};opacity:.5"></i>free</span>`;
-}
-
-function showChanges() {
-  drawChart(); showSummary(); save();
-  $('export').disabled = !state.steps.length;
-}
-function update(list = true) {
-  if (list) renderSteps();
-  else {
-    let row = $('steps').children[drag ? drag.index : state.selected], s = state.steps[drag ? drag.index : state.selected];
-    if (row && s) {
-      row.querySelector('[data-field=duration]').value = formatDuration(s.duration);
-      row.querySelector('[data-field=power]').value = s.power == null ? '' : round1(s.power);
-      row.querySelector('[data-field=end]').value = s.end == null ? '' : round1(s.end);
-      row.querySelector('.swatch').style.background = stepColor(s);
-    }
-  }
-  let m = metric(), u = unitName();
-  $('metric-power').setAttribute('aria-pressed', state.metric === 'power');
-  $('metric-heart').setAttribute('aria-pressed', state.metric === 'heart');
-  $('unit-pct').setAttribute('aria-pressed', !absolute());
-  $('unit-abs').setAttribute('aria-pressed', absolute());
-  $('unit-pct').textContent = m.relName;
-  $('unit-abs').textContent = m.absName;
-  $('unit-pct').title = state.metric === 'power' ? 'Follows the FTP set in the trainer app' : 'Follows the max heart rate set in the trainer app';
-  $('unit-abs').title = state.metric === 'power' ? 'The same watts for anyone' : 'The same beats per minute for anyone';
-  $('unit-hint').textContent = state.metric === 'power'
-    ? '% of FTP follows the FTP in the trainer app\'s settings; this FTP only shows the watts here.'
-    : 'The app sets the trainer\'s power so your heart rate reaches each target, and shows the heart rate expected by now: it needs a heart rate monitor. % of max follows max_hr in the app\'s settings.';
-  let labels = {'on-power': `${m.short} (${u})`, 'off-power': `${m.short} (${u})`, 'ladder-from': `From (${u})`, 'ladder-to': `To (${u})`,
-                'ladder-rest-power': `Rest ${state.metric === 'power' ? 'power' : 'HR'} (${u})`};
-  for (let id of HELPER_POWERS) $(id).previousElementSibling.textContent = labels[id];
-  showLegend();
-  showQuick();
-  showChanges();
-}
-
-function showQuick() {
-  $('quick').innerHTML = quickSteps().map((q, i) => {
-    let s = inUnit(q.make());
-    let p = s.power == null ? 'free' : s.end != null ? `${round1(s.power)}→${round1(s.end)}${unitText()}` : `${round1(s.power)}${unitText()}`;
-    return `<button data-quick="${i}" title="${formatDuration(s.duration)} at ${p}"><i style="background:${stepColor(s)}"></i>${q.label} <small>${p}</small></button>`;
-  }).join('');
-}
-$('quick').addEventListener('click', e => {
-  let b = e.target.closest('[data-quick]');
-  if (b) insert([inUnit(quickSteps()[Number(b.dataset.quick)].make())]);
-});
-
-
-function numberOf(id, low, high) {
-  let v = Number($(id).value);
-  if ($(id).value.trim() === '' || !Number.isFinite(v) || v < low || v > high) { $(id).classList.add('invalid'); throw new Error(id); }
-  $(id).classList.remove('invalid');
-  return v;
-}
-function durationOf(id, optional) {
-  let text = $(id).value.trim();
-  if (optional && (text === '' || text === '0')) { $(id).classList.remove('invalid'); return 0; }
-  let v = parseDuration(text);
-  if (!(v >= 1)) { $(id).classList.add('invalid'); throw new Error(id); }
-  $(id).classList.remove('invalid');
-  return v;
-}
-const maxPower = () => metric().max[absolute() ? 'abs' : 'rel'];
-function addSet() {
-  try {
-    let reps = Math.round(numberOf('set-reps', 1, 50)), sets = Math.round(numberOf('set-sets', 1, 10));
-    let on = durationOf('on-time'), onPower = numberOf('on-power', 0, maxPower()), off = durationOf('off-time', true);
-    let offPower = off ? numberOf('off-power', 0, maxPower()) : 0, rest = sets > 1 ? durationOf('set-rest', true) : 0;
-    let cadenceText = $('on-cadence').value.trim(), cadence = cadenceText ? Math.round(numberOf('on-cadence', 0, 200)) : null;
-    let label = $('set-label').value.trim().slice(0, TEXT_MAX), out = [];
-    for (let s = 0; s < sets; s++) {
-      for (let r = 0; r < reps; r++) {
-        out.push(step(on, onPower, null, cadence, label));
-        let last = r === reps - 1;
-        if (last && s < sets - 1 && rest) out.push(step(rest, offPower || fromPct(metric().rest), null, null, 'Rest'));
-        else if (off && !(last && s < sets - 1)) out.push(step(off, offPower, null, null, 'Recovery'));
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e1116;
+        --panel: #161b22;
+        --text: #e6edf3;
+        --muted: #8b96a3;
+        --line: #2b313b;
+        --accent: #2f81f7;
+        --accent-text: #ffffff;
+        --field: #0d1117;
+        --danger: #ff6b6b;
+        --warn: #f0a33a;
+        --chart-bg: #0d1117;
+        --chart-grid: #222831;
+        --selected: rgba(47, 129, 247, .14);
       }
     }
-    insert(out);
-  } catch (e) { status('Check the highlighted field.', true); }
-}
-function addLadder() {
-  try {
-    let from = numberOf('ladder-from', 0, maxPower()), to = numberOf('ladder-to', 0, maxPower());
-    let count = Math.round(numberOf('ladder-count', 2, 40)), each = durationOf('ladder-time'), rest = durationOf('ladder-rest', true);
-    let restPower = rest ? numberOf('ladder-rest-power', 0, maxPower()) : 0;
-    let levels = Array.from({length: count}, (_, i) => from + (to - from) * i / (count - 1));
-    if ($('ladder-back').checked) levels = levels.concat(levels.slice(0, -1).reverse());
-    let r = v => absolute() ? Math.round(v / metric().snap) * metric().snap : round1(v), out = [];
-    levels.forEach((p, i) => {
-      out.push(step(each, r(p), null, null, `Step ${i + 1}`));
-      if (rest && i < levels.length - 1) out.push(step(rest, restPower, null, null, 'Recovery'));
-    });
-    insert(out);
-  } catch (e) { status('Check the highlighted field.', true); }
-}
-$('add-set').addEventListener('click', addSet);
-for (let id of HELPER_INPUTS) $(id).addEventListener('change', save);
-$('add-ladder').addEventListener('click', addLadder);
 
-function showTemplates() {
-  let groups = [...new Set(TEMPLATES.map(t => t.group))];
-  $('template').innerHTML = groups.map(g => `<optgroup label="${g}">` +
-    TEMPLATES.map((t, i) => t.group === g ? `<option value="${i}">${escapeHtml(t.name)}</option>` : '').join('') + '</optgroup>').join('');
-  showTemplateInfo();
-}
-function showTemplateInfo() {
-  let t = TEMPLATES[Number($('template').value)], steps = t.steps();
-  let seconds = steps.reduce((a, s) => a + s.duration, 0);
-  $('template-info').textContent = `${formatDuration(seconds)} · ${t.description}`;
-}
-function loadTemplate(index) {
-  let t = TEMPLATES[index], had = state.steps.length;
-  remember();
-  let to = {metric: t.metric || 'power', unit: t.abs ? 'abs' : state.unit};
-  convertHelpers(to);
-  Object.assign(state, to);
-  state.steps = t.abs ? t.steps() : t.steps().map(inUnit);
-  state.name = t.name; state.description = t.description;
-  $('name').value = state.name; $('description').value = state.description;
-  state.selected = -1;
-  status(`Loaded ${t.name}.` + (had ? ' Undo brings back the steps before it.' : ''));
-  update();
-}
-$('template').addEventListener('change', showTemplateInfo);
-$('load-template').addEventListener('click', () => loadTemplate(Number($('template').value)));
-
-
-function splitCsv(line, sep) {
-  let out = [], field = '', quoted = false;
-  for (let i = 0; i < line.length; i++) {
-    let c = line[i];
-    if (quoted) {
-      if (c === '"' && line[i + 1] === '"') { field += '"'; i++; }
-      else if (c === '"') quoted = false;
-      else field += c;
-    } else if (c === '"' && field.trim() === '') { quoted = true; field = ''; }
-    else if (c === sep) { out.push(field.trim()); field = ''; }
-    else field += c;
-  }
-  out.push(field.trim());
-  return out;
-}
-function parseWorkout(text) {
-  let lines = text.split(/\r?\n/), props = {}, i = 0;
-  for (; i < lines.length; i++) {
-    let line = lines[i].trim();
-    if (!line) continue;
-    let m = /^#\s*([\w-]+)\s*:\s*(.*)$/.exec(line);
-    if (m) { props[m[1].toLowerCase()] = m[2].trim(); continue; }
-    if (line.startsWith('#')) continue;
-    break;
-  }
-  if (i >= lines.length) throw new Error('The file has no header row.');
-  let header = lines[i], sep = header.includes(',') ? ',' : header.includes(';') ? ';' : '\t';
-  let columns = splitCsv(header, sep).map(c => c.toLowerCase());
-  let col = (...names) => columns.findIndex(c => names.includes(c));
-  let at = {duration: col('duration'), power: col('power'), end: col('power_end'), heart: col('heart_rate', 'hr'),
-            heartEnd: col('heart_rate_end', 'hr_end'), cadence: col('cadence'), text: col('text', 'name', 'label')};
-  if (at.duration < 0) throw new Error(col('distance') >= 0 ? 'This is a route: open it in the Route Builder.' : 'No duration column: this isn\'t an interval workout.');
-  let power = text => {
-    let m = /^(\d+(?:\.\d+)?)\s*(%|w|W)?$/.exec(text);
-    if (!m) return null;
-    return {value: Number(m[1]), metric: 'power', unit: m[2] && m[2] !== '%' ? 'abs' : '%'};
-  };
-  let heartRate = text => {
-    let m = /^(\d+(?:\.\d+)?)\s*(%|bpm|BPM)?$/.exec(text);
-    if (!m || Number(m[1]) <= 0) return null;
-    return {value: Number(m[1]), metric: 'heart', unit: m[2] === '%' ? '%' : 'abs'};
-  };
-  let raw = [];
-  for (i++; i < lines.length; i++) {
-    let line = lines[i];
-    if (!line.trim() || line.trim().startsWith('#')) continue;
-    let f = splitCsv(line, sep), get = k => at[k] >= 0 ? (f[at[k]] || '').trim() : '';
-    let duration = parseDuration(get('duration'));
-    if (!(duration > 0)) throw new Error(`Line ${i + 1}: the duration "${get('duration')}" isn't one.`);
-    let p = get('power') ? power(get('power')) : null, e = get('end') && p ? power(get('end')) : null;
-    if (get('power') && !p) throw new Error(`Line ${i + 1}: the power "${get('power')}" isn't one.`);
-    if (get('end') && p && !e) throw new Error(`Line ${i + 1}: the end power "${get('end')}" isn't one.`);
-    if (e && !/[%wW]$/.test(get('end'))) e.unit = p.unit;
-    if (get('heart')) {
-      if (p) throw new Error(`Line ${i + 1}: a step holds a power or a heart rate, not both.`);
-      p = heartRate(get('heart'));
-      if (!p) throw new Error(`Line ${i + 1}: the heart rate "${get('heart')}" isn't bpm or % of the max.`);
-      e = get('heartEnd') ? heartRate(get('heartEnd')) : null;
-      if (get('heartEnd') && !e) throw new Error(`Line ${i + 1}: the end heart rate "${get('heartEnd')}" isn't one.`);
+    * {
+      box-sizing: border-box;
     }
-    let cadence = get('cadence') ? Number(get('cadence')) : null;
-    raw.push({duration, p, e, cadence: Number.isFinite(cadence) ? cadence : null, text: get('text').slice(0, TEXT_MAX)});
-  }
-  if (!raw.length) throw new Error('The file has no steps.');
-  let count = test => raw.filter(r => r.p && test(r.p)).length;
-  let metricOf = count(v => v.metric === 'heart') > count(v => v.metric === 'power') ? 'heart' : 'power';
-  let unit = count(v => v.metric === metricOf && v.unit === 'abs') > count(v => v.metric === metricOf && v.unit === '%') ? 'abs' : '%';
-  let to = {metric: metricOf, unit}, convert = v => !v ? null : convertValue(v.value, v, to);
-  return {name: props.name || '', description: props.description || '', metric: metricOf, unit,
-          converted: count(v => v.metric !== metricOf || v.unit !== unit),
-          steps: raw.map(r => step(r.duration, convert(r.p), convert(r.e), r.cadence, r.text))};
-}
-$('file').addEventListener('change', async e => {
-  let file = e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  try {
-    let w = parseWorkout(await file.text());
-    remember();
-    convertHelpers({metric: w.metric, unit: w.unit});
-    Object.assign(state, {name: w.name || file.name.replace(/\.\w+$/, ''), description: w.description, metric: w.metric, unit: w.unit, steps: w.steps, selected: -1});
-    $('name').value = state.name; $('description').value = state.description;
-    status(`Imported ${w.steps.length} steps.` + (w.converted ? ` ${w.converted} step${w.converted > 1 ? 's' : ''} in another unit or target ${w.converted > 1 ? 'were' : 'was'} converted to ${metric().name} in ${absolute() ? metric().abs : metric().relName} (FTP ${state.ftp} W, max heart rate ${state.maxHr}).` : ''));
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    header h1 {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    nav.pages {
+      display: flex;
+      gap: 4px;
+    }
+
+    nav.pages a {
+      padding: 2px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    nav.pages a:hover {
+      border-color: var(--accent);
+    }
+
+    nav.pages a[aria-current] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-text);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      min-height: 0;
+    }
+
+    .work {
+      overflow-y: auto;
+      padding: 12px 16px 24px;
+      min-width: 0;
+    }
+
+    aside {
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      overflow-y: auto;
+      padding: 12px 16px 24px;
+    }
+
+    section {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section:last-child {
+      border-bottom: 0;
+    }
+
+    h2 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin: 0 0 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin: 6px 0 2px;
+      color: var(--muted);
+    }
+
+    label.check {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+      color: var(--text);
+    }
+
+    input[type=text],
+    input[type=number],
+    select,
+    textarea {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--field);
+    }
+
+    input.invalid {
+      border-color: var(--danger);
+    }
+
+    input:disabled {
+      opacity: .45;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 48px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .row3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    button {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--field);
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: default;
+    }
+
+    .segmented {
+      display: flex;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .segmented button {
+      flex: 1;
+      border: 0;
+      border-radius: 0;
+      padding: 6px 4px;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .segmented button[aria-pressed=true] {
+      background: var(--accent);
+      color: var(--accent-text);
+    }
+
+    .quick {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .quick button {
+      text-align: left;
+      padding: 5px 8px;
+      font-size: 13px;
+    }
+
+    .quick i,
+    .swatch {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 6px;
+      vertical-align: -1px;
+    }
+
+    .quick small {
+      color: var(--muted);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px 12px;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 6px 0 0;
+    }
+
+    .warn {
+      color: var(--warn);
+      font-size: 12px;
+      margin: 6px 0 0;
+    }
+
+    #status {
+      min-height: 18px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    #status.error {
+      color: var(--danger);
+    }
+
+    #chart-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 20px;
+    }
+
+    #chart-head b {
+      color: var(--text);
+    }
+
+    canvas#chart {
+      width: 100%;
+      height: 220px;
+      display: block;
+      background: var(--chart-bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      touch-action: none;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 4px;
+      vertical-align: -1px;
+    }
+
+    #zones {
+      display: flex;
+      height: 10px;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 10px;
+      background: var(--chart-grid);
+    }
+
+    .steps-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin: 14px 0 6px;
+    }
+
+    .steps-bar h2 {
+      margin: 0 auto 0 0;
+    }
+
+    .step,
+    .columns {
+      display: grid;
+      grid-template-columns: 10px 76px 72px 72px 64px minmax(80px, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .columns {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 0 6px 4px;
+    }
+
+    .step {
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+    }
+
+    .step.selected {
+      background: var(--selected);
+      border-color: var(--accent);
+    }
+
+    .step input {
+      padding: 4px 6px;
+    }
+
+    .step .swatch {
+      width: 10px;
+      height: 28px;
+      margin: 0;
+      border-radius: 3px;
+    }
+
+    .tools {
+      display: flex;
+      gap: 2px;
+    }
+
+    .tools button {
+      padding: 3px 7px;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    #empty {
+      color: var(--muted);
+      padding: 16px 6px;
+    }
+
+    @media (max-width: 820px) {
+      body {
+        height: auto;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .columns {
+        display: none;
+      }
+
+      .step {
+        grid-template-columns: 10px 1fr 1fr 1fr 1fr;
+        padding: 6px;
+      }
+
+      .step .swatch {
+        grid-row: span 2;
+        height: 100%;
+      }
+
+      .step .text {
+        grid-column: 2 / 5;
+      }
+
+      .step .tools {
+        grid-column: 5;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Workout Builder</h1>
+    <nav class="pages" aria-label="Builders"><a href="index.html">Routes</a><a href="workout-builder.html"
+        aria-current="page">Workouts</a><a href="rides.html">Rides</a><a href="privacy.html">Privacy</a></nav>
+    <p>Steps of a set power or heart rate: the trainer sets the resistance (ERG), so you don't shift. Export a workout
+      for the trainer app.</p>
+  </header>
+  <main>
+    <div class="work">
+      <div id="chart-head"><span id="chart-info">Drag a step up or down to change its target, its right edge to change
+          its time.</span><span class="legend" id="legend"></span></div>
+      <canvas id="chart" aria-label="Workout profile"></canvas>
+      <div class="steps-bar">
+        <h2>Steps</h2>
+        <button id="scale-down" title="All powers −5 %">−5 %</button>
+        <button id="scale-up" title="All powers +5 %">+5 %</button>
+        <button id="undo" title="Ctrl+Z">Undo</button>
+        <button id="clear">Clear</button>
+      </div>
+      <div class="columns" aria-hidden="true"><span></span><span>Time</span><span id="col-power">Power %</span><span>→
+          end</span><span>Cadence</span><span>Text</span><span></span></div>
+      <div id="steps"></div>
+      <div id="empty">No steps yet: load a template, or add steps with the buttons on the right.</div>
+    </div>
+    <aside>
+      <section>
+        <h2>Workout</h2>
+        <label for="name">Name</label>
+        <input id="name" type="text" maxlength="63" placeholder="Sweet spot 3x10">
+        <label for="description">Description</label>
+        <textarea id="description" maxlength="159" placeholder="Three 10-minute intervals at 90 % of FTP"></textarea>
+        <div class="row">
+          <div><label for="ftp">Your FTP (W)</label><input id="ftp" type="number" min="50" max="600" step="5"
+              value="250"></div>
+          <div><label for="max-hr">Max heart rate</label><input id="max-hr" type="number" min="100" max="240" step="1"
+              value="185"></div>
+        </div>
+        <div class="row">
+          <div><label>Target</label>
+            <div class="segmented" role="group" aria-label="Target">
+              <button id="metric-power" aria-pressed="true" title="The trainer holds each step's power">Power</button>
+              <button id="metric-heart" aria-pressed="false" title="The trainer's power follows your heart rate">Heart
+                rate</button>
+            </div>
+          </div>
+          <div><label>In</label>
+            <div class="segmented" role="group" aria-label="Target in">
+              <button id="unit-pct" aria-pressed="true">% FTP</button>
+              <button id="unit-abs" aria-pressed="false">Watts</button>
+            </div>
+          </div>
+        </div>
+        <p class="hint" id="unit-hint"></p>
+        <div id="status" role="status"></div>
+      </section>
+      <section>
+        <h2>Templates</h2>
+        <select id="template" aria-label="Template"></select>
+        <p class="hint" id="template-info"></p>
+        <div class="buttons"><button id="load-template" class="primary">Load</button></div>
+      </section>
+      <section>
+        <h2>Add a step</h2>
+        <div class="quick" id="quick"></div>
+        <p class="hint">Added after the selected step (or at the end).</p>
+      </section>
+      <section>
+        <h2>Interval set</h2>
+        <div class="row">
+          <div><label for="set-reps">Repeats</label><input id="set-reps" type="number" min="1" max="50" value="5"></div>
+          <div><label for="set-sets">Sets</label><input id="set-sets" type="number" min="1" max="10" value="1"></div>
+        </div>
+        <div class="row3">
+          <div><label for="on-time">On</label><input id="on-time" type="text" value="3:00"></div>
+          <div><label for="on-power">Power (%)</label><input id="on-power" type="number" min="0" step="any" value="115">
+          </div>
+          <div><label for="on-cadence">Cadence</label><input id="on-cadence" type="number" min="0" max="200"
+              placeholder="–"></div>
+        </div>
+        <div class="row3">
+          <div><label for="off-time">Off</label><input id="off-time" type="text" value="3:00"></div>
+          <div><label for="off-power">Power (%)</label><input id="off-power" type="number" min="0" step="any"
+              value="50"></div>
+          <div><label for="set-rest">Between sets</label><input id="set-rest" type="text" value="5:00"></div>
+        </div>
+        <label for="set-label">Text</label>
+        <input id="set-label" type="text" maxlength="40" value="VO2 max">
+        <div class="buttons"><button id="add-set">Add set</button></div>
+      </section>
+      <section>
+        <h2>Ladder</h2>
+        <div class="row3">
+          <div><label for="ladder-from">From</label><input id="ladder-from" type="number" min="0" step="any" value="90">
+          </div>
+          <div><label for="ladder-to">To</label><input id="ladder-to" type="number" min="0" step="any" value="120">
+          </div>
+          <div><label for="ladder-count">Steps</label><input id="ladder-count" type="number" min="2" max="40" value="4">
+          </div>
+        </div>
+        <div class="row3">
+          <div><label for="ladder-time">Each</label><input id="ladder-time" type="text" value="2:00"></div>
+          <div><label for="ladder-rest">Rest</label><input id="ladder-rest" type="text" value="1:00" placeholder="none">
+          </div>
+          <div><label for="ladder-rest-power">Rest power</label><input id="ladder-rest-power" type="number" min="0"
+              step="any" value="50"></div>
+        </div>
+        <label class="check"><input id="ladder-back" type="checkbox"> and back down (a pyramid)</label>
+        <div class="buttons"><button id="add-ladder">Add ladder</button></div>
+      </section>
+      <section>
+        <h2>Summary</h2>
+        <div class="stats">
+          <div class="stat"><b id="s-time">–</b><span>time</span></div>
+          <div class="stat"><b id="s-avg">–</b><span>average</span></div>
+          <div class="stat"><b id="s-np">–</b><span id="s-np-label">normalized</span></div>
+          <div class="stat"><b id="s-if">–</b><span>intensity (IF)</span></div>
+          <div class="stat"><b id="s-tss">–</b><span>stress (TSS)</span></div>
+          <div class="stat"><b id="s-kj">–</b><span>work</span></div>
+        </div>
+        <div id="zones"></div>
+        <div id="warnings"></div>
+      </section>
+      <section>
+        <h2>Import and export</h2>
+        <input id="file" type="file" accept=".csv,.txt">
+        <p class="hint">A workout CSV (an interval workout), to change it. It replaces the steps.</p>
+        <div class="buttons"><button id="export" class="primary" disabled>Export CSV</button></div>
+        <p class="hint">Run it with <code>trainer --workout file.csv</code>, drop the file on the trainer's window, or
+          add it on the phones' TRAININGS page.</p>
+      </section>
+    </aside>
+  </main>
+  <script>
+    'use strict';
+    const STORE = 'mfd-workout-builder';
+    const TEXT_MAX = 47;
+    const STEPS_MAX = 1000;
+
+    const ZONES = [
+      { top: 55, color: '#8e959f', name: 'Recovery' },
+      { top: 75, color: '#2f8cff', name: 'Endurance' },
+      { top: 90, color: '#2fc26b', name: 'Tempo' },
+      { top: 105, color: '#ffd23f', name: 'Threshold' },
+      { top: 120, color: '#ff8a1f', name: 'VO2 max' },
+      { top: 150, color: '#ef3b36', name: 'Anaerobic' },
+      { top: Infinity, color: '#b04dff', name: 'Neuromuscular' }
+    ];
+    const HEART_ZONES = [
+      { top: 60, color: '#8e959f', name: 'Recovery' },
+      { top: 70, color: '#2f8cff', name: 'Endurance' },
+      { top: 80, color: '#2fc26b', name: 'Aerobic' },
+      { top: 90, color: '#ff8a1f', name: 'Threshold' },
+      { top: Infinity, color: '#ef3b36', name: 'Maximum' }
+    ];
+    const FREE_COLOR = '#6b7480';
+
+    const METRICS = {
+      power: {
+        name: 'power', short: 'Power', abs: 'W', relName: '% FTP', absName: 'Watts', ref: () => state.ftp, snap: 5,
+        zones: ZONES, base: 0, low: 160, free: 50, rest: 50, grid: 25, labels: 50, max: { rel: 300, abs: 2000 }
+      },
+      heart: {
+        name: 'heart rate', short: 'HR', abs: 'bpm', relName: '% max', absName: 'bpm', ref: () => state.maxHr, snap: 1,
+        zones: HEART_ZONES, base: 40, low: 100, free: 60, rest: 62, grid: 10, labels: 20, max: { rel: 100, abs: 240 }
+      }
+    };
+    const metric = () => METRICS[state.metric];
+    const absolute = () => state.unit === 'abs';
+    const zoneOf = pct => metric().zones.findIndex(z => pct < z.top);
+
+    const heartToPower = h => 45 + (h - 60) / 30 * 55;
+    const powerToHeart = p => 60 + (p - 45) / 55 * 30;
+
+    const $ = id => document.getElementById(id);
+    const state = {
+      name: '', description: '', ftp: 250, maxHr: 185,
+      metric: 'power',
+      unit: '%',
+      steps: [],
+      selected: -1,
+      history: []
+    };
+
+
+    const min = m => m * 60;
+    function parseDuration(text) {
+      text = String(text).trim();
+      if (/^\d+(\.\d+)?$/.test(text)) return Number(text);
+      let m = /^(?:(\d+):)?(\d{1,3}):(\d{1,2})$/.exec(text);
+      if (!m || Number(m[3]) > 59) return NaN;
+      return (Number(m[1]) || 0) * 3600 + Number(m[2]) * 60 + Number(m[3]);
+    }
+    function formatDuration(s) {
+      s = Math.round(s);
+      let h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, sec = String(s % 60).padStart(2, '0');
+      return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
+    }
+    const round1 = v => Math.round(v * 10) / 10;
+    const pctOf = v => absolute() ? v / metric().ref() * 100 : v;
+    const absOf = v => absolute() ? v : v * metric().ref() / 100;
+    const fromPct = p => absolute() ? Math.round(p * metric().ref() / 100 / metric().snap) * metric().snap : p;
+    const unitName = () => absolute() ? metric().abs : '%';
+    const unitText = () => ' ' + unitName();
+    function targetText(s) {
+      if (s.power == null) return 'free';
+      let p = s.end != null && s.end !== s.power ? `${round1(s.power)}→${round1(s.end)}` : `${round1(s.power)}`;
+      if (absolute()) return `${p} ${metric().abs}`;
+      let a = s.end != null && s.end !== s.power ? `${Math.round(absOf(s.power))}→${Math.round(absOf(s.end))}` : Math.round(absOf(s.power));
+      return `${p} % (${a} ${metric().abs})`;
+    }
+    function convertValue(v, from, to) {
+      if (v == null) return null;
+      if (from.metric === to.metric && from.unit === to.unit) return v;
+      let pct = from.unit === 'abs' ? v / METRICS[from.metric].ref() * 100 : v;
+      if (from.metric !== to.metric) pct = from.metric === 'power' ? powerToHeart(pct) : heartToPower(pct);
+      let m = METRICS[to.metric];
+      return to.unit === 'abs' ? Math.round(pct * m.ref() / 100 / m.snap) * m.snap : round1(pct);
+    }
+    const kind = () => ({ metric: state.metric, unit: state.unit });
+    const stepPct = s => s.power == null ? null : (pctOf(s.power) + pctOf(s.end ?? s.power)) / 2;
+    const stepColor = s => s.power == null ? FREE_COLOR : metric().zones[zoneOf(stepPct(s))].color;
+    const step = (duration, power, end = null, cadence = null, text = '') => ({ duration, power, end, cadence, text });
+    const escapeHtml = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    function status(text, error) {
+      $('status').textContent = text || '';
+      $('status').classList.toggle('error', !!error);
+    }
+
+
+    const warmUp = () => [step(min(10), 45, 70, null, 'Warm up')];
+    const coolDown = () => [step(min(10), 60, 40, null, 'Cool down')];
+    function repeats(count, on, off, offAfterLast = true) {
+      let out = [];
+      for (let i = 0; i < count; i++) { out.push({ ...on }); if (i < count - 1 || offAfterLast) out.push({ ...off }); }
+      return out;
+    }
+    const TEMPLATES = [
+      {
+        group: 'Base', name: 'Endurance 1h', description: 'An hour in zone 2 at a steady, easy pace: builds the aerobic base',
+        steps: () => [step(min(10), 45, 65, null, 'Warm up'), step(min(45), 68, null, 90, 'Endurance'), step(min(5), 55, 40, null, 'Cool down')]
+      },
+      {
+        group: 'Base', name: 'Recovery spin', description: '30 minutes very easy with a high cadence, for the day after a hard one',
+        steps: () => [step(min(5), 40, 50, null, 'Easy'), step(min(20), 50, null, 95, 'Spin'), step(min(5), 50, 35, null, 'Easy')]
+      },
+      {
+        group: 'Base', name: 'Tempo 2x20', description: 'Two 20-minute blocks in zone 3 (83 % of FTP) with 5 minutes easy',
+        steps: () => [...warmUp(), ...repeats(2, step(min(20), 83, null, 90, 'Tempo'), step(min(5), 55, null, null, 'Recovery'), false), ...coolDown()]
+      },
+      {
+        group: 'Threshold', name: 'Sweet spot 3x10', description: 'Three 10-minute intervals at 90 % of FTP with 5 minutes easy between them',
+        steps: () => [...warmUp(), step(min(5), 65, null, null, 'Endurance'), ...repeats(3, step(min(10), 90, null, 90, 'Sweet spot'), step(min(5), 55, null, null, 'Recovery')), ...coolDown()]
+      },
+      {
+        group: 'Threshold', name: 'Sweet spot 2x20', description: 'Two 20-minute intervals at 90 % of FTP with 5 minutes easy',
+        steps: () => [...warmUp(), ...repeats(2, step(min(20), 90, null, 90, 'Sweet spot'), step(min(5), 55, null, null, 'Recovery')), ...coolDown()]
+      },
+      {
+        group: 'Threshold', name: 'Threshold 2x20', description: 'Two 20-minute intervals at 97 % of FTP: the classic FTP builder',
+        steps: () => [...warmUp(), ...repeats(3, step(30, 105, null, 100, 'Opener'), step(30, 55, null, null, 'Easy')), step(min(3), 55),
+        ...repeats(2, step(min(20), 97, null, 90, 'Threshold'), step(min(8), 55, null, null, 'Recovery')), ...coolDown()]
+      },
+      {
+        group: 'Threshold', name: 'Over-unders 3x9', description: 'Three 9-minute sets swinging 2 minutes at 95 % and 1 minute at 108 %: clearing lactate above threshold',
+        steps: () => {
+          let out = [...warmUp()];
+          for (let s = 0; s < 3; s++) {
+            out.push(...repeats(3, step(min(2), 95, null, 90, 'Under'), step(min(1), 108, null, 95, 'Over'), false));
+            out.push(step(min(5), 55, null, null, 'Recovery'));
+          }
+          return [...out, ...coolDown()];
+        }
+      },
+      {
+        group: 'VO2 max', name: 'VO2 max 5x3', description: 'Five 3-minute efforts at 115 % of FTP, 3 minutes easy between them',
+        steps: () => [step(min(12), 45, 70, null, 'Warm up'), step(min(1), 100, null, null, 'Opener'), step(min(4), 50, null, null, 'Easy'),
+        ...repeats(5, step(min(3), 115, null, 100, 'VO2 max'), step(min(3), 50, null, null, 'Recovery')), ...coolDown()]
+      },
+      {
+        group: 'VO2 max', name: '30/30s 2x10', description: 'Two sets of ten 30 seconds at 125 % with 30 seconds easy: VO2 max time with short efforts',
+        steps: () => [...warmUp(), step(min(5), 65, null, null, 'Endurance'),
+        ...repeats(10, step(30, 125, null, 100, '30 on'), step(30, 50, null, null, '30 off'), false), step(min(6), 50, null, null, 'Recovery'),
+        ...repeats(10, step(30, 125, null, 100, '30 on'), step(30, 50, null, null, '30 off'), false), ...coolDown()]
+      },
+      {
+        group: 'VO2 max', name: 'Pyramid 1-2-3-4-3-2-1', description: 'Efforts at 110 % growing from 1 to 4 minutes and back, the same time easy after each',
+        steps: () => {
+          let out = [...warmUp(), step(min(5), 65, null, null, 'Endurance')];
+          for (let m of [1, 2, 3, 4, 3, 2, 1]) out.push(step(min(m), 110, null, 95, `${m} min`), step(min(m), 50, null, null, 'Recovery'));
+          return [...out, ...coolDown()];
+        }
+      },
+      {
+        group: 'Tests', name: 'FTP test (20 min)', description: 'A 20-minute free effort (a flat road: shift and pace it yourself, as hard as you can hold); your FTP is about 95 % of its average power',
+        steps: () => [step(min(10), 45, 70, null, 'Warm up'), ...repeats(3, step(min(1), 110, null, 100, 'Opener'), step(min(1), 50, null, null, 'Easy')),
+        step(min(5), 50, null, null, 'Easy'), step(min(5), null, null, null, 'All out 5 min'), step(min(10), 50, null, null, 'Recovery'),
+        step(min(20), null, null, null, '20 min test'), step(min(10), 50, 40, null, 'Cool down')]
+      },
+      {
+        group: 'Heart rate', metric: 'heart', name: 'Zone 2 by heart rate', description: '40 minutes at 72 % of your max heart rate: the trainer sets the power that keeps your heart there, so it eases off as you drift',
+        steps: () => [step(min(10), 60, 70, 90, 'Warm up'), step(min(40), 72, null, 90, 'Zone 2'), step(min(10), 65, 58, null, 'Cool down')]
+      },
+      {
+        group: 'Heart rate', metric: 'heart', name: 'Aerobic 3x10 by heart rate', description: 'Three 10 minutes at 82 % of your max heart rate with 5 minutes at 65 %: the power follows how your heart answers today',
+        steps: () => [step(min(10), 60, 72, null, 'Warm up'), ...repeats(3, step(min(10), 82, null, 90, 'Aerobic'), step(min(5), 65, null, null, 'Recovery')), step(min(8), 65, 58, null, 'Cool down')]
+      },
+      {
+        group: 'Heart rate', metric: 'heart', name: 'Heart rate progression', description: 'Fifteen minutes each at 65, 72 and 78 % of your max heart rate, then easy',
+        steps: () => [step(min(8), 58, 65, null, 'Warm up'), step(min(15), 65, null, 90, 'Easy'), step(min(15), 72, null, 90, 'Steady'), step(min(15), 78, null, 90, 'Strong'), step(min(10), 65, 58, null, 'Cool down')]
+      },
+      {
+        group: 'Tests', name: 'Ramp test', abs: true, description: "+20 W every minute from 100 W until you can't hold it; your FTP is about 75 % of the last full minute's power. Stop with N or Esc when done.",
+        steps: () => {
+          let out = [step(min(5), 100, null, null, 'Warm up')];
+          for (let i = 1; i <= 27; i++) out.push(step(min(1), 80 + 20 * i, null, null, `Step ${i}`));
+          return [...out, step(min(5), null, null, null, 'Cool down')];
+        }
+      }
+    ];
+
+
+    const QUICK_HEART = [
+      { label: 'Warm up', make: () => step(min(10), 60, 70, null, 'Warm up') },
+      { label: 'Cool down', make: () => step(min(10), 68, 58, null, 'Cool down') },
+      { label: 'Recovery', make: () => step(min(5), 58, null, null, 'Recovery') },
+      { label: 'Endurance', make: () => step(min(20), 68, null, 90, 'Endurance') },
+      { label: 'Aerobic', make: () => step(min(10), 76, null, 90, 'Aerobic') },
+      { label: 'Tempo', make: () => step(min(10), 82, null, 90, 'Tempo') },
+      { label: 'Threshold', make: () => step(min(8), 88, null, 90, 'Threshold') },
+      { label: 'Free ride', make: () => step(min(5), null, null, null, 'Free ride') }
+    ];
+    const QUICK = [
+      { label: 'Warm up', make: () => step(min(10), 45, 70, null, 'Warm up') },
+      { label: 'Cool down', make: () => step(min(10), 60, 40, null, 'Cool down') },
+      { label: 'Recovery', make: () => step(min(5), 50, null, null, 'Recovery') },
+      { label: 'Endurance', make: () => step(min(20), 68, null, 90, 'Endurance') },
+      { label: 'Tempo', make: () => step(min(10), 83, null, 90, 'Tempo') },
+      { label: 'Sweet spot', make: () => step(min(10), 90, null, 90, 'Sweet spot') },
+      { label: 'Threshold', make: () => step(min(8), 100, null, 90, 'Threshold') },
+      { label: 'VO2 max', make: () => step(min(3), 115, null, 100, 'VO2 max') },
+      { label: 'Anaerobic', make: () => step(min(1), 130, null, 105, 'Anaerobic') },
+      { label: 'Free ride', make: () => step(min(5), null, null, null, 'Free ride') }
+    ];
+    const quickSteps = () => state.metric === 'heart' ? QUICK_HEART : QUICK;
+    const inUnit = s => ({ ...s, power: s.power == null ? null : fromPct(s.power), end: s.end == null ? null : fromPct(s.end) });
+
+
+    const snapshot = () => JSON.stringify({ metric: state.metric, unit: state.unit, steps: state.steps, name: state.name, description: state.description });
+    function remember(shot = snapshot()) {
+      state.history.push(shot);
+      if (state.history.length > 100) state.history.shift();
+      $('undo').disabled = false;
+    }
+    function undo() {
+      let shot = state.history.pop();
+      $('undo').disabled = !state.history.length;
+      if (!shot) return;
+      let s = JSON.parse(shot);
+      convertHelpers({ metric: s.metric || 'power', unit: s.unit });
+      Object.assign(state, { metric: s.metric || 'power', unit: s.unit, steps: s.steps, name: s.name, description: s.description });
+      state.selected = Math.min(state.selected, state.steps.length - 1);
+      $('name').value = state.name; $('description').value = state.description;
+      update();
+    }
+    function save() {
+      try {
+        let helpers = Object.fromEntries(HELPER_INPUTS.map(id => [id, $(id).type === 'checkbox' ? $(id).checked : $(id).value]));
+        localStorage.setItem(STORE, JSON.stringify({
+          name: state.name, description: state.description, ftp: state.ftp, maxHr: state.maxHr,
+          metric: state.metric, unit: state.unit, steps: state.steps, helpers
+        }));
+      } catch (e) { }
+    }
+    function restore() {
+      try {
+        let s = JSON.parse(localStorage.getItem(STORE) || 'null');
+        if (!s || !Array.isArray(s.steps)) return;
+        Object.assign(state, {
+          name: s.name || '', description: s.description || '', ftp: Number(s.ftp) || 250, maxHr: Number(s.maxHr) || 185,
+          metric: s.metric === 'heart' ? 'heart' : 'power', unit: s.unit === 'abs' || s.unit === 'W' ? 'abs' : '%',
+          steps: s.steps.filter(x => x && x.duration > 0)
+        });
+        for (let [id, v] of Object.entries(s.helpers || {})) if (HELPER_INPUTS.includes(id)) $(id).type === 'checkbox' ? $(id).checked = !!v : $(id).value = v;
+      } catch (e) { }
+    }
+
+
+    function insert(steps) {
+      if (state.steps.length + steps.length > STEPS_MAX) return status(`A workout has at most ${STEPS_MAX} steps.`, true);
+      remember();
+      let at = state.selected >= 0 ? state.selected + 1 : state.steps.length;
+      state.steps.splice(at, 0, ...steps);
+      state.selected = at + steps.length - 1;
+      status('');
+      update();
+      scrollToSelected();
+    }
+    const HELPER_INPUTS = ['set-reps', 'set-sets', 'on-time', 'on-power', 'on-cadence', 'off-time', 'off-power', 'set-rest', 'set-label',
+      'ladder-from', 'ladder-to', 'ladder-count', 'ladder-time', 'ladder-rest', 'ladder-rest-power', 'ladder-back'];
+    const HELPER_POWERS = ['on-power', 'off-power', 'ladder-from', 'ladder-to', 'ladder-rest-power'];
+    function convertHelpers(to) {
+      let from = kind();
+      for (let id of HELPER_POWERS) if ($(id).value.trim() !== '' && Number.isFinite(Number($(id).value))) $(id).value = convertValue(Number($(id).value), from, to);
+    }
+    function convertTo(to) {
+      let from = kind(), c = v => convertValue(v, from, to);
+      state.steps = state.steps.map(s => ({ ...s, power: c(s.power), end: c(s.end) }));
+      convertHelpers(to);
+      state.metric = to.metric;
+      state.unit = to.unit;
+    }
+    function setUnit(unit) {
+      if (unit === state.unit) return;
+      remember();
+      convertTo({ metric: state.metric, unit });
+      update();
+    }
+    function setMetric(name) {
+      if (name === state.metric) return;
+      remember();
+      convertTo({ metric: name, unit: state.unit });
+      if (state.steps.length) status(`The steps were converted to ${METRICS[name].name} with the app's model (45 % of FTP at 60 % of the max heart rate, FTP at 90 %). Undo brings them back.`);
+      update();
+    }
+    function scale(factor) {
+      if (!state.steps.length) return;
+      remember();
+      let f = v => v == null ? null : absolute() ? Math.round(v * factor) : round1(v * factor);
+      state.steps = state.steps.map(s => ({ ...s, power: f(s.power), end: f(s.end) }));
+      update();
+    }
+
+
+    function stepRow(s, i) {
+      let v = x => x == null ? '' : round1(x);
+      return `<div class="step${i === state.selected ? ' selected' : ''}" data-index="${i}">` +
+        `<i class="swatch" style="background:${stepColor(s)}"></i>` +
+        `<input data-field="duration" type="text" inputmode="numeric" value="${formatDuration(s.duration)}" placeholder="m:ss" aria-label="Time">` +
+        `<input data-field="power" type="number" min="0" step="any" value="${v(s.power)}" placeholder="free" aria-label="Power">` +
+        `<input data-field="end" type="number" min="0" step="any" value="${v(s.end)}" placeholder="–" aria-label="End power (a ramp)"${s.power == null ? ' disabled' : ''}>` +
+        `<input data-field="cadence" type="number" min="0" max="200" value="${s.cadence ?? ''}" placeholder="rpm" aria-label="Cadence">` +
+        `<input class="text" data-field="text" type="text" maxlength="${TEXT_MAX}" value="${escapeHtml(s.text)}" placeholder="text" aria-label="Text">` +
+        `<span class="tools"><button data-action="up" title="Earlier" aria-label="Move up"${i ? '' : ' disabled'}>↑</button>` +
+        `<button data-action="down" title="Later" aria-label="Move down"${i < state.steps.length - 1 ? '' : ' disabled'}>↓</button>` +
+        `<button data-action="copy" title="Duplicate" aria-label="Duplicate">⧉</button>` +
+        `<button data-action="delete" title="Remove (Delete)" aria-label="Remove">✕</button></span></div>`;
+    }
+    function renderSteps() {
+      $('steps').innerHTML = state.steps.map(stepRow).join('');
+      $('empty').hidden = state.steps.length > 0;
+      $('col-power').textContent = `${metric().short} ${unitName()}`;
+    }
+    function select(index) {
+      if (index === state.selected) return;
+      state.selected = index;
+      for (let row of $('steps').children) row.classList.toggle('selected', Number(row.dataset.index) === index);
+      drawChart();
+    }
+    function scrollToSelected() {
+      let row = $('steps').children[state.selected];
+      if (row) row.scrollIntoView({ block: 'nearest' });
+    }
+
+    let pending = null;
+    $('steps').addEventListener('focusin', e => {
+      let row = e.target.closest('.step');
+      if (row) select(Number(row.dataset.index));
+      if (e.target.dataset.field) pending = snapshot();
+    });
+    $('steps').addEventListener('click', e => {
+      let row = e.target.closest('.step');
+      if (!row) return;
+      let i = Number(row.dataset.index), action = e.target.closest('[data-action]')?.dataset.action;
+      select(i);
+      if (!action) return;
+      remember();
+      let s = state.steps;
+      if (action === 'up' && i > 0) { [s[i - 1], s[i]] = [s[i], s[i - 1]]; state.selected = i - 1; }
+      else if (action === 'down' && i < s.length - 1) { [s[i + 1], s[i]] = [s[i], s[i + 1]]; state.selected = i + 1; }
+      else if (action === 'copy') { s.splice(i + 1, 0, { ...s[i] }); state.selected = i + 1; }
+      else if (action === 'delete') { s.splice(i, 1); state.selected = Math.min(i, s.length - 1); }
+      update();
+    });
+    $('steps').addEventListener('input', e => {
+      let field = e.target.dataset.field, row = e.target.closest('.step');
+      if (!field || !row) return;
+      let s = state.steps[Number(row.dataset.index)], text = e.target.value.trim(), value, ok = true;
+      if (field === 'duration') { value = parseDuration(text); ok = value >= 1; }
+      else if (field === 'text') value = e.target.value;
+      else {
+        value = text === '' ? null : Number(text);
+        ok = value == null || (Number.isFinite(value) && value >= 0 && (field !== 'cadence' || value <= 200));
+      }
+      e.target.classList.toggle('invalid', !ok);
+      if (!ok) return;
+      if (pending) { remember(pending); pending = null; }
+      s[field] = value;
+      if (field === 'power') row.querySelector('[data-field=end]').disabled = value == null;
+      row.querySelector('.swatch').style.background = stepColor(s);
+      showChanges();
+    });
+    $('steps').addEventListener('change', e => {
+      let row = e.target.closest('.step');
+      if (!row || !e.target.dataset.field) return;
+      let s = state.steps[Number(row.dataset.index)], field = e.target.dataset.field;
+      e.target.classList.remove('invalid');
+      if (field === 'duration') e.target.value = formatDuration(s.duration);
+      else if (field !== 'text') e.target.value = s[field] == null ? '' : round1(s[field]);
+    });
+
+
+    const canvas = $('chart'), ctx = canvas.getContext('2d');
+    const PAD = { left: 46, right: 10, top: 10, bottom: 22 };
+    let drag = null, hover = -1;
+
+    function geometry() {
+      let w = canvas.clientWidth, h = canvas.clientHeight;
+      let total = state.steps.reduce((t, s) => t + s.duration, 0);
+      let m = metric(), base = m.base;
+      let top = Math.max(m.low, ...state.steps.map(s => s.power == null ? 0 : Math.max(pctOf(s.power), pctOf(s.end ?? s.power)) * 1.08));
+      top = Math.ceil(top / 20) * 20;
+      let plotW = w - PAD.left - PAD.right, plotH = h - PAD.top - PAD.bottom;
+      return {
+        w, h, total, top, base, plotW, plotH,
+        x: t => PAD.left + (total ? t / total : 0) * plotW,
+        y: pct => PAD.top + plotH * (1 - Math.max(0, pct - base) / (top - base))
+      };
+    }
+    function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+    function drawChart() {
+      let ratio = window.devicePixelRatio || 1, g = geometry();
+      canvas.width = Math.round(g.w * ratio); canvas.height = Math.round(g.h * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.clearRect(0, 0, g.w, g.h);
+      let grid = cssVar('--chart-grid'), muted = cssVar('--muted'), accent = cssVar('--accent');
+      ctx.font = '11px system-ui, sans-serif';
+      let m = metric(), power = state.metric === 'power';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      for (let p = g.base; p <= g.top; p += m.grid) {
+        let y = Math.round(g.y(p)) + .5;
+        ctx.strokeStyle = grid; ctx.lineWidth = 1; ctx.setLineDash(power && p === 100 ? [4, 3] : []);
+        if (p === 100) ctx.strokeStyle = muted;
+        ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(g.w - PAD.right, y); ctx.stroke();
+        if (p % m.labels === 0) {
+          ctx.fillStyle = muted;
+          ctx.fillText(p === 100 ? (power ? 'FTP' : 'MAX') : absolute() ? `${Math.round(p * m.ref() / 100)} ${m.abs}` : `${p} %`, PAD.left - 6, y);
+        }
+      }
+      ctx.setLineDash([]);
+      if (!g.total) {
+        ctx.textAlign = 'center'; ctx.fillStyle = muted; ctx.font = '13px system-ui, sans-serif';
+        ctx.fillText('The workout\'s profile shows here.', PAD.left + g.plotW / 2, PAD.top + g.plotH / 2);
+        return;
+      }
+      let t = 0, base = g.y(g.base), free = g.y(m.free);
+      state.steps.forEach((s, i) => {
+        let x0 = g.x(t), x1 = g.x(t + s.duration), gap = x1 - x0 > 4 ? 1 : 0;
+        t += s.duration;
+        ctx.beginPath();
+        if (s.power == null) {
+          ctx.rect(x0, free, x1 - x0 - gap, base - free);
+          ctx.globalAlpha = i === hover ? .5 : .3; ctx.fillStyle = FREE_COLOR; ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.save(); ctx.clip(); ctx.strokeStyle = FREE_COLOR; ctx.lineWidth = 1;
+          for (let hx = x0 - (base - free); hx < x1; hx += 6) { ctx.beginPath(); ctx.moveTo(hx, base); ctx.lineTo(hx + base - free, free); ctx.stroke(); }
+          ctx.restore();
+        } else {
+          ctx.moveTo(x0, base); ctx.lineTo(x0, g.y(pctOf(s.power))); ctx.lineTo(x1 - gap, g.y(pctOf(s.end ?? s.power))); ctx.lineTo(x1 - gap, base); ctx.closePath();
+          ctx.globalAlpha = i === hover || i === state.selected ? 1 : .85; ctx.fillStyle = stepColor(s); ctx.fill(); ctx.globalAlpha = 1;
+        }
+        if (i === state.selected) {
+          ctx.strokeStyle = accent; ctx.lineWidth = 2;
+          let top = s.power == null ? g.y(m.free) : Math.min(g.y(pctOf(s.power)), g.y(pctOf(s.end ?? s.power)));
+          ctx.strokeRect(x0 + 1, top - 3, Math.max(2, x1 - x0 - 2), base - top + 2);
+        }
+      });
+      let every = [1, 2, 5, 10, 15, 30, 60].find(m => g.total / 60 / m <= 10) || 120;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = muted;
+      for (let m = 0; m * 60 <= g.total; m += every) {
+        let x = g.x(m * 60);
+        ctx.fillRect(Math.round(x), base, 1, 4);
+        ctx.fillText(m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, '0') : ''}` : `${m}′`, Math.min(Math.max(x, PAD.left + 8), g.w - 12), base + 6);
+      }
+    }
+
+    function hitTest(e) {
+      let g = geometry(), rect = canvas.getBoundingClientRect(), x = e.clientX - rect.left;
+      if (!g.total || x < PAD.left - 4 || x > g.w - PAD.right + 6) return null;
+      let t = 0;
+      for (let i = 0; i < state.steps.length; i++) {
+        let x1 = g.x(t + state.steps[i].duration);
+        if (Math.abs(x - x1) <= 5) return { index: i, edge: true };
+        if (x < x1) return { index: i, edge: false };
+        t += state.steps[i].duration;
+      }
+      return null;
+    }
+    function describe(i) {
+      let s = state.steps[i];
+      return `<b>${i + 1}${s.text ? ' · ' + escapeHtml(s.text) : ''}</b> · ${formatDuration(s.duration)} · ${targetText(s)}${s.cadence ? ` · ${s.cadence} rpm` : ''}`;
+    }
+    canvas.addEventListener('pointerdown', e => {
+      let hit = hitTest(e);
+      if (!hit) return;
+      select(hit.index);
+      scrollToSelected();
+      let s = state.steps[hit.index], g = geometry();
+      drag = {
+        mode: hit.edge ? 'time' : 'power', index: hit.index, x: e.clientX, y: e.clientY, start: { ...s },
+        secondsPerPx: g.total / g.plotW, pctPerPx: (g.top - g.base) / g.plotH, shot: snapshot(), moved: false
+      };
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointermove', e => {
+      if (!drag) {
+        let hit = hitTest(e);
+        canvas.style.cursor = !hit ? 'default' : hit.edge ? 'ew-resize' : state.steps[hit.index].power == null ? 'pointer' : 'ns-resize';
+        let index = hit ? hit.index : -1;
+        if (index !== hover) { hover = index; drawChart(); }
+        $('chart-info').innerHTML = hit ? describe(hit.index) : 'Drag a step up or down to change its target, its right edge to change its time.';
+        return;
+      }
+      let s = state.steps[drag.index], dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (!drag.moved && Math.abs(drag.mode === 'time' ? dx : dy) < 3) return;
+      if (drag.mode === 'power') {
+        if (s.power == null) return;
+        let dp = -dy * drag.pctPerPx;
+        dp = absolute() ? Math.round(dp * metric().ref() / 100 / metric().snap) * metric().snap : Math.round(dp);
+        s.power = Math.max(0, drag.start.power + dp);
+        if (s.end != null) s.end = Math.max(0, drag.start.end + dp);
+      } else {
+        let seconds = drag.start.duration + dx * drag.secondsPerPx;
+        let snap = seconds < 120 ? 5 : 15;
+        s.duration = Math.max(5, Math.round(seconds / snap) * snap);
+      }
+      if (!drag.moved) { drag.moved = true; remember(drag.shot); }
+      $('chart-info').innerHTML = describe(drag.index);
+      update(false);
+    });
+    const endDrag = () => { if (drag && drag.moved) save(); drag = null; };
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+    canvas.addEventListener('pointerleave', () => { if (!drag && hover >= 0) { hover = -1; drawChart(); } });
+    window.addEventListener('resize', drawChart);
+
+
+    function summary() {
+      let secs = [], free = metric().free;
+      for (let s of state.steps) {
+        let d = Math.round(s.duration);
+        for (let k = 0; k < d; k++)
+          secs.push(s.power == null ? free : pctOf(s.power) + (pctOf(s.end ?? s.power) - pctOf(s.power)) * (k + .5) / d);
+      }
+      if (!secs.length) return null;
+      let zones = metric().zones.map(() => 0);
+      for (let p of secs) zones[zoneOf(p)]++;
+      let targetAvg = secs.reduce((a, b) => a + b, 0) / secs.length, highest = Math.max(...secs);
+      if (state.metric === 'heart') secs = secs.map(heartToPower);
+      let avg = secs.reduce((a, b) => a + b, 0) / secs.length;
+      let rolled = [], sum = 0;
+      for (let i = 0; i < secs.length; i++) {
+        sum += secs[i];
+        if (i >= 30) sum -= secs[i - 30];
+        if (i >= 29) rolled.push(sum / 30);
+      }
+      if (!rolled.length) rolled = [avg];
+      let np = Math.pow(rolled.reduce((a, b) => a + b ** 4, 0) / rolled.length, 1 / 4);
+      let intensity = np / 100;
+      return {
+        seconds: secs.length, avg, np, targetAvg, highest, intensity, tss: secs.length / 3600 * intensity * intensity * 100,
+        kj: secs.reduce((a, p) => a + p * state.ftp / 100, 0) / 1000, zones
+      };
+    }
+    function showSummary() {
+      let s = summary(), m = metric(), heart = state.metric === 'heart', zones = m.zones;
+      let shown = p => absolute() ? `${Math.round(p * m.ref() / 100)} ${m.abs}` : `${Math.round(p)} %`;
+      let watts = p => absolute() && !heart ? `${Math.round(p * state.ftp / 100)} W` : `${Math.round(p)} %`;
+      let about = heart ? '≈' : '';
+      $('s-time').textContent = s ? formatDuration(s.seconds) : '–';
+      $('s-avg').textContent = s ? shown(s.targetAvg) : '–';
+      $('s-np-label').textContent = heart ? 'highest' : 'normalized';
+      $('s-np').textContent = s ? (heart ? shown(s.highest) : watts(s.np)) : '–';
+      $('s-if').textContent = s ? about + s.intensity.toFixed(2) : '–';
+      $('s-tss').textContent = s ? about + Math.round(s.tss) : '–';
+      $('s-kj').textContent = s ? `${about}${Math.round(s.kj)} kJ` : '–';
+      $('zones').title = `Time in ${m.name} zones`;
+      $('zones').innerHTML = !s ? '' : s.zones.map((n, i) => n ? `<i style="flex:${n};background:${zones[i].color}" title="Z${i + 1} ${zones[i].name}: ${formatDuration(n)}"></i>` : '').join('');
+      let warnings = [], short = state.steps.filter(x => x.power != null && x.duration < 20).length;
+      let slow = state.steps.filter(x => x.power != null && x.duration < 180).length;
+      let free = state.steps.some(x => x.power == null), textLong = state.steps.some(x => x.text.length > TEXT_MAX);
+      if (heart && slow) warnings.push(`${slow} step${slow > 1 ? 's are' : ' is'} shorter than 3 minutes: the heart takes a minute or two to answer a change of power, so ${slow > 1 ? 'they' : 'it'} won't reach the target.`);
+      if (!heart && short) warnings.push(`${short} step${short > 1 ? 's are' : ' is'} shorter than 20 s: a trainer in ERG takes 5–10 s to reach a new power, so short efforts come out softer. Free steps suit sprints.`);
+      if (heart && s) warnings.push('IF, TSS and work are estimates from the heart rates, with the model the app starts the power from; the ride itself knows better.');
+      if (free) warnings.push(`Free steps are a flat road where you shift yourself; the numbers above count them at ${m.free} %.`);
+      if (state.steps.length > STEPS_MAX) warnings.push(`More than ${STEPS_MAX} steps: the trainer reads the first ${STEPS_MAX}.`);
+      if (textLong) warnings.push(`Texts longer than ${TEXT_MAX} characters are cut.`);
+      $('warnings').innerHTML = warnings.map(w => `<p class="${/^(Free|IF)/.test(w) ? 'hint' : 'warn'}">${w}</p>`).join('');
+    }
+
+    function showLegend() {
+      $('legend').innerHTML = metric().zones.map((z, i) => `<span><i style="background:${z.color}"></i>Z${i + 1}</span>`).join('') +
+        `<span><i style="background:${FREE_COLOR};opacity:.5"></i>free</span>`;
+    }
+
+    function showChanges() {
+      drawChart(); showSummary(); save();
+      $('export').disabled = !state.steps.length;
+    }
+    function update(list = true) {
+      if (list) renderSteps();
+      else {
+        let row = $('steps').children[drag ? drag.index : state.selected], s = state.steps[drag ? drag.index : state.selected];
+        if (row && s) {
+          row.querySelector('[data-field=duration]').value = formatDuration(s.duration);
+          row.querySelector('[data-field=power]').value = s.power == null ? '' : round1(s.power);
+          row.querySelector('[data-field=end]').value = s.end == null ? '' : round1(s.end);
+          row.querySelector('.swatch').style.background = stepColor(s);
+        }
+      }
+      let m = metric(), u = unitName();
+      $('metric-power').setAttribute('aria-pressed', state.metric === 'power');
+      $('metric-heart').setAttribute('aria-pressed', state.metric === 'heart');
+      $('unit-pct').setAttribute('aria-pressed', !absolute());
+      $('unit-abs').setAttribute('aria-pressed', absolute());
+      $('unit-pct').textContent = m.relName;
+      $('unit-abs').textContent = m.absName;
+      $('unit-pct').title = state.metric === 'power' ? 'Follows the FTP set in the trainer app' : 'Follows the max heart rate set in the trainer app';
+      $('unit-abs').title = state.metric === 'power' ? 'The same watts for anyone' : 'The same beats per minute for anyone';
+      $('unit-hint').textContent = state.metric === 'power'
+        ? '% of FTP follows the FTP in the trainer app\'s settings; this FTP only shows the watts here.'
+        : 'The app sets the trainer\'s power so your heart rate reaches each target, and shows the heart rate expected by now: it needs a heart rate monitor. % of max follows max_hr in the app\'s settings.';
+      let labels = {
+        'on-power': `${m.short} (${u})`, 'off-power': `${m.short} (${u})`, 'ladder-from': `From (${u})`, 'ladder-to': `To (${u})`,
+        'ladder-rest-power': `Rest ${state.metric === 'power' ? 'power' : 'HR'} (${u})`
+      };
+      for (let id of HELPER_POWERS) $(id).previousElementSibling.textContent = labels[id];
+      showLegend();
+      showQuick();
+      showChanges();
+    }
+
+    function showQuick() {
+      $('quick').innerHTML = quickSteps().map((q, i) => {
+        let s = inUnit(q.make());
+        let p = s.power == null ? 'free' : s.end != null ? `${round1(s.power)}→${round1(s.end)}${unitText()}` : `${round1(s.power)}${unitText()}`;
+        return `<button data-quick="${i}" title="${formatDuration(s.duration)} at ${p}"><i style="background:${stepColor(s)}"></i>${q.label} <small>${p}</small></button>`;
+      }).join('');
+    }
+    $('quick').addEventListener('click', e => {
+      let b = e.target.closest('[data-quick]');
+      if (b) insert([inUnit(quickSteps()[Number(b.dataset.quick)].make())]);
+    });
+
+
+    function numberOf(id, low, high) {
+      let v = Number($(id).value);
+      if ($(id).value.trim() === '' || !Number.isFinite(v) || v < low || v > high) { $(id).classList.add('invalid'); throw new Error(id); }
+      $(id).classList.remove('invalid');
+      return v;
+    }
+    function durationOf(id, optional) {
+      let text = $(id).value.trim();
+      if (optional && (text === '' || text === '0')) { $(id).classList.remove('invalid'); return 0; }
+      let v = parseDuration(text);
+      if (!(v >= 1)) { $(id).classList.add('invalid'); throw new Error(id); }
+      $(id).classList.remove('invalid');
+      return v;
+    }
+    const maxPower = () => metric().max[absolute() ? 'abs' : 'rel'];
+    function addSet() {
+      try {
+        let reps = Math.round(numberOf('set-reps', 1, 50)), sets = Math.round(numberOf('set-sets', 1, 10));
+        let on = durationOf('on-time'), onPower = numberOf('on-power', 0, maxPower()), off = durationOf('off-time', true);
+        let offPower = off ? numberOf('off-power', 0, maxPower()) : 0, rest = sets > 1 ? durationOf('set-rest', true) : 0;
+        let cadenceText = $('on-cadence').value.trim(), cadence = cadenceText ? Math.round(numberOf('on-cadence', 0, 200)) : null;
+        let label = $('set-label').value.trim().slice(0, TEXT_MAX), out = [];
+        for (let s = 0; s < sets; s++) {
+          for (let r = 0; r < reps; r++) {
+            out.push(step(on, onPower, null, cadence, label));
+            let last = r === reps - 1;
+            if (last && s < sets - 1 && rest) out.push(step(rest, offPower || fromPct(metric().rest), null, null, 'Rest'));
+            else if (off && !(last && s < sets - 1)) out.push(step(off, offPower, null, null, 'Recovery'));
+          }
+        }
+        insert(out);
+      } catch (e) { status('Check the highlighted field.', true); }
+    }
+    function addLadder() {
+      try {
+        let from = numberOf('ladder-from', 0, maxPower()), to = numberOf('ladder-to', 0, maxPower());
+        let count = Math.round(numberOf('ladder-count', 2, 40)), each = durationOf('ladder-time'), rest = durationOf('ladder-rest', true);
+        let restPower = rest ? numberOf('ladder-rest-power', 0, maxPower()) : 0;
+        let levels = Array.from({ length: count }, (_, i) => from + (to - from) * i / (count - 1));
+        if ($('ladder-back').checked) levels = levels.concat(levels.slice(0, -1).reverse());
+        let r = v => absolute() ? Math.round(v / metric().snap) * metric().snap : round1(v), out = [];
+        levels.forEach((p, i) => {
+          out.push(step(each, r(p), null, null, `Step ${i + 1}`));
+          if (rest && i < levels.length - 1) out.push(step(rest, restPower, null, null, 'Recovery'));
+        });
+        insert(out);
+      } catch (e) { status('Check the highlighted field.', true); }
+    }
+    $('add-set').addEventListener('click', addSet);
+    for (let id of HELPER_INPUTS) $(id).addEventListener('change', save);
+    $('add-ladder').addEventListener('click', addLadder);
+
+    function showTemplates() {
+      let groups = [...new Set(TEMPLATES.map(t => t.group))];
+      $('template').innerHTML = groups.map(g => `<optgroup label="${g}">` +
+        TEMPLATES.map((t, i) => t.group === g ? `<option value="${i}">${escapeHtml(t.name)}</option>` : '').join('') + '</optgroup>').join('');
+      showTemplateInfo();
+    }
+    function showTemplateInfo() {
+      let t = TEMPLATES[Number($('template').value)], steps = t.steps();
+      let seconds = steps.reduce((a, s) => a + s.duration, 0);
+      $('template-info').textContent = `${formatDuration(seconds)} · ${t.description}`;
+    }
+    function loadTemplate(index) {
+      let t = TEMPLATES[index], had = state.steps.length;
+      remember();
+      let to = { metric: t.metric || 'power', unit: t.abs ? 'abs' : state.unit };
+      convertHelpers(to);
+      Object.assign(state, to);
+      state.steps = t.abs ? t.steps() : t.steps().map(inUnit);
+      state.name = t.name; state.description = t.description;
+      $('name').value = state.name; $('description').value = state.description;
+      state.selected = -1;
+      status(`Loaded ${t.name}.` + (had ? ' Undo brings back the steps before it.' : ''));
+      update();
+    }
+    $('template').addEventListener('change', showTemplateInfo);
+    $('load-template').addEventListener('click', () => loadTemplate(Number($('template').value)));
+
+
+    function splitCsv(line, sep) {
+      let out = [], field = '', quoted = false;
+      for (let i = 0; i < line.length; i++) {
+        let c = line[i];
+        if (quoted) {
+          if (c === '"' && line[i + 1] === '"') { field += '"'; i++; }
+          else if (c === '"') quoted = false;
+          else field += c;
+        } else if (c === '"' && field.trim() === '') { quoted = true; field = ''; }
+        else if (c === sep) { out.push(field.trim()); field = ''; }
+        else field += c;
+      }
+      out.push(field.trim());
+      return out;
+    }
+    function parseWorkout(text) {
+      let lines = text.split(/\r?\n/), props = {}, i = 0;
+      for (; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (!line) continue;
+        let m = /^#\s*([\w-]+)\s*:\s*(.*)$/.exec(line);
+        if (m) { props[m[1].toLowerCase()] = m[2].trim(); continue; }
+        if (line.startsWith('#')) continue;
+        break;
+      }
+      if (i >= lines.length) throw new Error('The file has no header row.');
+      let header = lines[i], sep = header.includes(',') ? ',' : header.includes(';') ? ';' : '\t';
+      let columns = splitCsv(header, sep).map(c => c.toLowerCase());
+      let col = (...names) => columns.findIndex(c => names.includes(c));
+      let at = {
+        duration: col('duration'), power: col('power'), end: col('power_end'), heart: col('heart_rate', 'hr'),
+        heartEnd: col('heart_rate_end', 'hr_end'), cadence: col('cadence'), text: col('text', 'name', 'label')
+      };
+      if (at.duration < 0) throw new Error(col('distance') >= 0 ? 'This is a route: open it in the Route Builder.' : 'No duration column: this isn\'t an interval workout.');
+      let power = text => {
+        let m = /^(\d+(?:\.\d+)?)\s*(%|w|W)?$/.exec(text);
+        if (!m) return null;
+        return { value: Number(m[1]), metric: 'power', unit: m[2] && m[2] !== '%' ? 'abs' : '%' };
+      };
+      let heartRate = text => {
+        let m = /^(\d+(?:\.\d+)?)\s*(%|bpm|BPM)?$/.exec(text);
+        if (!m || Number(m[1]) <= 0) return null;
+        return { value: Number(m[1]), metric: 'heart', unit: m[2] === '%' ? '%' : 'abs' };
+      };
+      let raw = [];
+      for (i++; i < lines.length; i++) {
+        let line = lines[i];
+        if (!line.trim() || line.trim().startsWith('#')) continue;
+        let f = splitCsv(line, sep), get = k => at[k] >= 0 ? (f[at[k]] || '').trim() : '';
+        let duration = parseDuration(get('duration'));
+        if (!(duration > 0)) throw new Error(`Line ${i + 1}: the duration "${get('duration')}" isn't one.`);
+        let p = get('power') ? power(get('power')) : null, e = get('end') && p ? power(get('end')) : null;
+        if (get('power') && !p) throw new Error(`Line ${i + 1}: the power "${get('power')}" isn't one.`);
+        if (get('end') && p && !e) throw new Error(`Line ${i + 1}: the end power "${get('end')}" isn't one.`);
+        if (e && !/[%wW]$/.test(get('end'))) e.unit = p.unit;
+        if (get('heart')) {
+          if (p) throw new Error(`Line ${i + 1}: a step holds a power or a heart rate, not both.`);
+          p = heartRate(get('heart'));
+          if (!p) throw new Error(`Line ${i + 1}: the heart rate "${get('heart')}" isn't bpm or % of the max.`);
+          e = get('heartEnd') ? heartRate(get('heartEnd')) : null;
+          if (get('heartEnd') && !e) throw new Error(`Line ${i + 1}: the end heart rate "${get('heartEnd')}" isn't one.`);
+        }
+        let cadence = get('cadence') ? Number(get('cadence')) : null;
+        raw.push({ duration, p, e, cadence: Number.isFinite(cadence) ? cadence : null, text: get('text').slice(0, TEXT_MAX) });
+      }
+      if (!raw.length) throw new Error('The file has no steps.');
+      let count = test => raw.filter(r => r.p && test(r.p)).length;
+      let metricOf = count(v => v.metric === 'heart') > count(v => v.metric === 'power') ? 'heart' : 'power';
+      let unit = count(v => v.metric === metricOf && v.unit === 'abs') > count(v => v.metric === metricOf && v.unit === '%') ? 'abs' : '%';
+      let to = { metric: metricOf, unit }, convert = v => !v ? null : convertValue(v.value, v, to);
+      return {
+        name: props.name || '', description: props.description || '', metric: metricOf, unit,
+        converted: count(v => v.metric !== metricOf || v.unit !== unit),
+        steps: raw.map(r => step(r.duration, convert(r.p), convert(r.e), r.cadence, r.text))
+      };
+    }
+    $('file').addEventListener('change', async e => {
+      let file = e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      try {
+        let w = parseWorkout(await file.text());
+        remember();
+        convertHelpers({ metric: w.metric, unit: w.unit });
+        Object.assign(state, { name: w.name || file.name.replace(/\.\w+$/, ''), description: w.description, metric: w.metric, unit: w.unit, steps: w.steps, selected: -1 });
+        $('name').value = state.name; $('description').value = state.description;
+        status(`Imported ${w.steps.length} steps.` + (w.converted ? ` ${w.converted} step${w.converted > 1 ? 's' : ''} in another unit or target ${w.converted > 1 ? 'were' : 'was'} converted to ${metric().name} in ${absolute() ? metric().abs : metric().relName} (FTP ${state.ftp} W, max heart rate ${state.maxHr}).` : ''));
+        update();
+      } catch (err) { status(err.message, true); }
+    });
+
+    function workoutCsv() {
+      let one = t => t.replace(/[\r\n]+/g, ' ').trim();
+      let field = t => /[,"]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+      let heart = state.metric === 'heart';
+      let p = v => v == null ? '' : heart ? (absolute() ? `${Math.round(v)}` : `${round1(v)}%`) : absolute() ? `${Math.round(v)}W` : `${round1(v)}`;
+      let lines = [`# name: ${one(state.name) || 'Workout'}`];
+      if (one(state.description)) lines.push(`# description: ${one(state.description)}`);
+      lines.push(heart ? 'duration,heart_rate,heart_rate_end,cadence,text' : 'duration,power,power_end,cadence,text');
+      for (let s of state.steps.slice(0, STEPS_MAX)) {
+        let ramp = s.power != null && s.end != null && s.end !== s.power;
+        lines.push([formatDuration(s.duration), p(s.power), ramp ? p(s.end) : '', s.cadence ?? '', field(one(s.text).slice(0, TEXT_MAX))].join(','));
+      }
+      return lines.join('\n') + '\n';
+    }
+    function download(name, text) {
+      let a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' }));
+      a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+    const fileName = () => (state.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'workout') + '.csv';
+    $('export').addEventListener('click', () => download(fileName(), workoutCsv()));
+
+
+    $('name').addEventListener('input', e => { state.name = e.target.value; save(); });
+    $('description').addEventListener('input', e => { state.description = e.target.value; save(); });
+    $('ftp').addEventListener('input', e => {
+      let v = Number(e.target.value);
+      if (!(v >= 50 && v <= 600)) return e.target.classList.add('invalid');
+      e.target.classList.remove('invalid');
+      state.ftp = v;
+      update();
+    });
+    $('unit-pct').addEventListener('click', () => setUnit('%'));
+    $('unit-abs').addEventListener('click', () => setUnit('abs'));
+    $('metric-power').addEventListener('click', () => setMetric('power'));
+    $('metric-heart').addEventListener('click', () => setMetric('heart'));
+    $('max-hr').addEventListener('input', e => {
+      let v = Number(e.target.value);
+      if (!(v >= 100 && v <= 240)) return e.target.classList.add('invalid');
+      e.target.classList.remove('invalid');
+      state.maxHr = v;
+      update();
+    });
+    $('scale-down').addEventListener('click', () => scale(0.95));
+    $('scale-up').addEventListener('click', () => scale(1.05));
+    $('undo').addEventListener('click', undo);
+    $('clear').addEventListener('click', () => {
+      if (!state.steps.length) return;
+      remember();
+      state.steps = []; state.selected = -1;
+      status('Cleared. Undo brings the steps back.');
+      update();
+    });
+    document.addEventListener('keydown', e => {
+      let editing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !editing) { e.preventDefault(); undo(); }
+      else if ((e.key === 'Delete' || e.key === 'Backspace') && !editing && state.selected >= 0) {
+        e.preventDefault();
+        remember();
+        state.steps.splice(state.selected, 1);
+        state.selected = Math.min(state.selected, state.steps.length - 1);
+        update();
+      }
+    });
+
+    restore();
+    $('name').value = state.name; $('description').value = state.description; $('ftp').value = state.ftp; $('max-hr').value = state.maxHr;
+    $('undo').disabled = true;
+    showLegend(); showTemplates();
     update();
-  } catch (err) { status(err.message, true); }
-});
 
-function workoutCsv() {
-  let one = t => t.replace(/[\r\n]+/g, ' ').trim();
-  let field = t => /[,"]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
-  let heart = state.metric === 'heart';
-  let p = v => v == null ? '' : heart ? (absolute() ? `${Math.round(v)}` : `${round1(v)}%`) : absolute() ? `${Math.round(v)}W` : `${round1(v)}`;
-  let lines = [`# name: ${one(state.name) || 'Workout'}`];
-  if (one(state.description)) lines.push(`# description: ${one(state.description)}`);
-  lines.push(heart ? 'duration,heart_rate,heart_rate_end,cadence,text' : 'duration,power,power_end,cadence,text');
-  for (let s of state.steps.slice(0, STEPS_MAX)) {
-    let ramp = s.power != null && s.end != null && s.end !== s.power;
-    lines.push([formatDuration(s.duration), p(s.power), ramp ? p(s.end) : '', s.cadence ?? '', field(one(s.text).slice(0, TEXT_MAX))].join(','));
-  }
-  return lines.join('\n') + '\n';
-}
-function download(name, text) {
-  let a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], {type: 'text/csv'}));
-  a.download = name;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
-const fileName = () => (state.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'workout') + '.csv';
-$('export').addEventListener('click', () => download(fileName(), workoutCsv()));
-
-
-$('name').addEventListener('input', e => { state.name = e.target.value; save(); });
-$('description').addEventListener('input', e => { state.description = e.target.value; save(); });
-$('ftp').addEventListener('input', e => {
-  let v = Number(e.target.value);
-  if (!(v >= 50 && v <= 600)) return e.target.classList.add('invalid');
-  e.target.classList.remove('invalid');
-  state.ftp = v;
-  update();
-});
-$('unit-pct').addEventListener('click', () => setUnit('%'));
-$('unit-abs').addEventListener('click', () => setUnit('abs'));
-$('metric-power').addEventListener('click', () => setMetric('power'));
-$('metric-heart').addEventListener('click', () => setMetric('heart'));
-$('max-hr').addEventListener('input', e => {
-  let v = Number(e.target.value);
-  if (!(v >= 100 && v <= 240)) return e.target.classList.add('invalid');
-  e.target.classList.remove('invalid');
-  state.maxHr = v;
-  update();
-});
-$('scale-down').addEventListener('click', () => scale(0.95));
-$('scale-up').addEventListener('click', () => scale(1.05));
-$('undo').addEventListener('click', undo);
-$('clear').addEventListener('click', () => {
-  if (!state.steps.length) return;
-  remember();
-  state.steps = []; state.selected = -1;
-  status('Cleared. Undo brings the steps back.');
-  update();
-});
-document.addEventListener('keydown', e => {
-  let editing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !editing) { e.preventDefault(); undo(); }
-  else if ((e.key === 'Delete' || e.key === 'Backspace') && !editing && state.selected >= 0) {
-    e.preventDefault();
-    remember();
-    state.steps.splice(state.selected, 1);
-    state.selected = Math.min(state.selected, state.steps.length - 1);
-    update();
-  }
-});
-
-restore();
-$('name').value = state.name; $('description').value = state.description; $('ftp').value = state.ftp; $('max-hr').value = state.maxHr;
-$('undo').disabled = true;
-showLegend(); showTemplates();
-update();
-
-window.workoutBuilder = {state, parseWorkout, workoutCsv, loadTemplate, summary, templates: TEMPLATES.map(t => t.name),
-                         addSet, addLadder, setUnit, setMetric, insert, undo};
-</script>
+    window.workoutBuilder = {
+      state, parseWorkout, workoutCsv, loadTemplate, summary, templates: TEMPLATES.map(t => t.name),
+      addSet, addLadder, setUnit, setMetric, insert, undo
+    };
+  </script>
 </body>
+
 </html>
