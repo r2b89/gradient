@@ -46,6 +46,12 @@ and laps, plus a weekly history. The files are read in your browser and stay the
 
 The privacy policy for the app and these tools.
 
+## Search engines
+
+`robots.txt` points to `sitemap.xml`, which lists every page: add new pages there and update their
+`lastmod` when they change. Each page has its title, description, canonical URL, Open Graph tags and
+structured data (JSON-LD) in its `<head>`. `404.html` is GitHub Pages' page for missing addresses.
+
 ## Running it
 
 There's nothing to install. You can open the HTML files directly, or serve the folder:

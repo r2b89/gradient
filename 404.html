@@ -1,0 +1,97 @@
+<!doctype html>
+<!--
+  Copyright (c) 2026 Alex Kasianov. All rights reserved.
+-->
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <meta name="theme-color" content="#0b0f14">
+  <meta name="robots" content="noindex">
+  <title>Page not found | Gradient</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      color: var(--text);
+      font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      padding: 48px 20px;
+    }
+
+    h1 {
+      font-size: 40px;
+      margin: 0 0 10px;
+    }
+
+    p {
+      color: var(--muted);
+      margin: 0 0 28px;
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .links a {
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .links a:first-child {
+      background: var(--text);
+      border-color: var(--text);
+      color: var(--bg);
+    }
+  </style>
+  <link rel="stylesheet" href="/site.css">
+</head>
+
+<body>
+  <header class="top">
+    <div class="bar">
+      <a class="brand" href="/"><img src="/icons/icon.svg" alt="" width="32" height="32">Gradient</a>
+      <nav aria-label="Pages">
+        <a href="/route-builder.html">Routes</a>
+        <a href="/workout-builder.html">Workouts</a>
+        <a href="/rides.html">Rides</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <h1>Off route</h1>
+    <p>There's no page at this address.</p>
+    <div class="links">
+      <a href="/">Home</a>
+      <a href="/route-builder.html">Route Builder</a>
+      <a href="/workout-builder.html">Workout Builder</a>
+    </div>
+  </main>
+</body>
+
+</html>
