@@ -8,7 +8,13 @@ app uses. They're plain HTML files with no build step and no backend.
 
 ## The tools
 
-### Route builder (`index.html`)
+### Landing page (`index.html`)
+
+The home page that presents the app, with screenshots in `images/` (from the app's Play Store graphics).
+The "Coming soon to Google Play" badges become a link to the Play listing once the app is out.
+Every page links `site.css`: the dark palette, the header (logo, page title, pages) and the buttons.
+
+### Route builder (`route-builder.html`)
 
 Click on the map to drop waypoints, and the route follows the roads (BRouter does the routing, with
 a few bike profiles to pick from) or goes in straight lines. You can also import a GPX you already

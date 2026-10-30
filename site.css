@@ -1,0 +1,195 @@
+/*
+  Copyright (c) 2026 Alex Kasianov. All rights reserved.
+
+  Shared by every page: the dark palette of the app, the site header and the buttons.
+  Linked after a page's own <style>, so these win over the page's defaults.
+*/
+
+:root {
+  color-scheme: dark;
+  --bg: #0b0f14;
+  --panel: #121821;
+  --panel-2: #18202b;
+  --text: #e9eef4;
+  --muted: #94a0ae;
+  --line: #252d38;
+  --line-hover: #3a4554;
+  --accent: #2f8cff;
+  --accent-text: #ffffff;
+  --field: #0b0f14;
+  --danger: #ef3b36;
+  --chart-bg: #0b0f14;
+  --chart-grid: #1e2630;
+  --z1: #8e959f;
+  --z2: #2f8cff;
+  --z3: #2fc26b;
+  --z4: #ffd23f;
+  --z5: #ff8a1f;
+  --z6: #ef3b36;
+  --z7: #b04dff;
+  --zones: linear-gradient(90deg, var(--z1), var(--z2), var(--z3), var(--z4), var(--z5), var(--z6), var(--z7));
+}
+
+html {
+  scroll-padding-top: 76px;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Header: logo, the page's title, the pages */
+header.top {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: block;
+  padding: 0;
+  background: rgba(11, 15, 20, .88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+header.top .bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 60px;
+  padding: 0 20px;
+}
+
+header.top .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+header.top .brand img {
+  width: 32px;
+  height: 32px;
+}
+
+header.top h1 {
+  margin: 0;
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+header.top nav {
+  display: flex;
+  gap: 22px;
+  margin-left: auto;
+  font-size: 15px;
+}
+
+header.top nav a {
+  position: relative;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+header.top nav a:hover,
+header.top nav a[aria-current] {
+  color: var(--text);
+}
+
+header.top nav a[aria-current]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -20px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--zones);
+}
+
+header.top .sub {
+  margin: 0;
+  padding: 7px 20px 8px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  header.top .bar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px 16px 0;
+    row-gap: 10px;
+  }
+
+  header.top h1 {
+    display: none;
+  }
+
+  header.top nav {
+    order: 3;
+    flex-basis: 100%;
+    margin-left: 0;
+    gap: 18px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+
+  header.top nav a[aria-current]::after {
+    bottom: -10px;
+  }
+
+  header.top .sub {
+    padding: 7px 16px 8px;
+  }
+}
+
+/* Buttons in the tools, matching the landing page's */
+main button {
+  border-radius: 8px;
+  background: var(--panel-2);
+  border-color: var(--line);
+}
+
+main button:hover {
+  border-color: var(--line-hover);
+}
+
+main button.primary {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+main button.primary:hover {
+  background: #fff;
+  border-color: #fff;
+}
+
+main input[type=text],
+main input[type=number],
+main input[type=search],
+main select,
+main textarea {
+  border-radius: 8px;
+}
+
+main input:focus-visible,
+main select:focus-visible,
+main textarea:focus-visible,
+main button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

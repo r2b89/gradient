@@ -15,37 +15,8 @@
   <title>Workout Builder</title>
   <style>
     :root {
-      --bg: #f5f6f8;
-      --panel: #ffffff;
-      --text: #1b1f24;
-      --muted: #5f6b7a;
-      --line: #dde1e6;
-      --accent: #1f6feb;
-      --accent-text: #ffffff;
-      --field: #ffffff;
-      --danger: #c62828;
-      --warn: #b26a00;
-      --chart-bg: #ffffff;
-      --chart-grid: #e6e9ed;
-      --selected: rgba(31, 111, 235, .08);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0e1116;
-        --panel: #161b22;
-        --text: #e6edf3;
-        --muted: #8b96a3;
-        --line: #2b313b;
-        --accent: #2f81f7;
-        --accent-text: #ffffff;
-        --field: #0d1117;
-        --danger: #ff6b6b;
-        --warn: #f0a33a;
-        --chart-bg: #0d1117;
-        --chart-grid: #222831;
-        --selected: rgba(47, 129, 247, .14);
-      }
+      --warn: #f0a33a;
+      --selected: rgba(47, 140, 255, .14);
     }
 
     * {
@@ -65,51 +36,6 @@
       display: grid;
       grid-template-rows: auto 1fr;
       height: 100vh;
-    }
-
-    header {
-      display: flex;
-      align-items: baseline;
-      flex-wrap: wrap;
-      gap: 6px 12px;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--line);
-      background: var(--panel);
-    }
-
-    header h1 {
-      font-size: 16px;
-      margin: 0;
-    }
-
-    header p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    nav.pages {
-      display: flex;
-      gap: 4px;
-    }
-
-    nav.pages a {
-      padding: 2px 10px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 13px;
-    }
-
-    nav.pages a:hover {
-      border-color: var(--accent);
-    }
-
-    nav.pages a[aria-current] {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--accent-text);
     }
 
     main {
@@ -473,15 +399,22 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="site.css">
 </head>
 
 <body>
-  <header>
-    <h1>Workout Builder</h1>
-    <nav class="pages" aria-label="Builders"><a href="index.html">Routes</a><a href="workout-builder.html"
-        aria-current="page">Workouts</a><a href="rides.html">Rides</a><a href="privacy.html">Privacy</a></nav>
-    <p>Steps of a set power or heart rate: the trainer sets the resistance (ERG), so you don't shift. Export a workout
-      for the trainer app.</p>
+  <header class="top">
+    <div class="bar">
+      <a class="brand" href="./"><img src="icons/icon.svg" alt="" width="32" height="32">Gradient</a>
+      <h1>Workout Builder</h1>
+      <nav aria-label="Pages">
+        <a href="route-builder.html">Routes</a>
+        <a href="workout-builder.html" aria-current="page">Workouts</a>
+        <a href="rides.html">Rides</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </div>
+    <p class="sub">Steps of a set power or heart rate: the trainer sets the resistance (ERG), so you don't shift. Export a workout for the trainer app.</p>
   </header>
   <main>
     <div class="work">

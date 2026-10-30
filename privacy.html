@@ -11,28 +11,6 @@
   <meta name="theme-color" content="#0b0f14">
   <title>Gradient Privacy Policy</title>
   <style>
-    :root {
-      --bg: #f5f6f8;
-      --panel: #ffffff;
-      --text: #1b1f24;
-      --muted: #5f6b7a;
-      --line: #dde1e6;
-      --accent: #1f6feb;
-      --accent-text: #ffffff;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0e1116;
-        --panel: #161b22;
-        --text: #e6edf3;
-        --muted: #8b96a3;
-        --line: #2b313b;
-        --accent: #2f81f7;
-        --accent-text: #ffffff;
-      }
-    }
-
     * {
       box-sizing: border-box;
     }
@@ -46,51 +24,6 @@
       background: var(--bg);
       color: var(--text);
       font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    }
-
-    header {
-      display: flex;
-      align-items: baseline;
-      flex-wrap: wrap;
-      gap: 6px 12px;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--line);
-      background: var(--panel);
-    }
-
-    header h1 {
-      font-size: 16px;
-      margin: 0;
-    }
-
-    header p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    nav.pages {
-      display: flex;
-      gap: 4px;
-    }
-
-    nav.pages a {
-      padding: 2px 10px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 13px;
-    }
-
-    nav.pages a:hover {
-      border-color: var(--accent);
-    }
-
-    nav.pages a[aria-current] {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--accent-text);
     }
 
     main {
@@ -171,14 +104,22 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="site.css">
 </head>
 
 <body>
-  <header>
-    <h1>Gradient</h1>
-    <nav class="pages" aria-label="Builders"><a href="index.html">Routes</a><a href="workout-builder.html">Workouts</a><a
-        href="rides.html">Rides</a><a href="privacy.html" aria-current="page">Privacy</a></nav>
-    <p>What the app and these tools do with your data.</p>
+  <header class="top">
+    <div class="bar">
+      <a class="brand" href="./"><img src="icons/icon.svg" alt="" width="32" height="32">Gradient</a>
+      <h1>Privacy</h1>
+      <nav aria-label="Pages">
+        <a href="route-builder.html">Routes</a>
+        <a href="workout-builder.html">Workouts</a>
+        <a href="rides.html">Rides</a>
+        <a href="privacy.html" aria-current="page">Privacy</a>
+      </nav>
+    </div>
+    <p class="sub">What the app and these tools do with your data.</p>
   </header>
   <main>
     <h2>Privacy Policy</h2>
