@@ -78,7 +78,3 @@ search. They get your waypoints and searches, nothing else. There's more detail 
 
 Map data © OpenStreetMap contributors. Thanks to the people behind BRouter, Open-Meteo, OpenTopoMap
 and Leaflet, which do most of the hard work here.
-
-## License
-
-Copyright © 2026 r2b89. All rights reserved.

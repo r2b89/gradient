@@ -1,6 +1,4 @@
 /*
-  Copyright (c) 2026 Alex Kasianov. All rights reserved.
-
   Shared by every page: the dark palette of the app, the site header and the buttons.
   Linked after a page's own <style>, so these win over the page's defaults.
 */
