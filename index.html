@@ -569,6 +569,7 @@
       <nav aria-label="Page">
         <a href="#workouts">Workouts</a>
         <a href="#routes">Routes</a>
+        <a href="#road">3D road</a>
         <a href="#rides">Your rides</a>
         <a href="#tools">Web tools</a>
       </nav>
@@ -703,7 +704,102 @@
       </div>
     </section>
 
-    <section id="rides">
+    <section id="road">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Ride the route as a 3D road.</h2>
+          <p>Swipe to the last page and the route you're riding becomes a road in front of you, rising where the
+            trainer gets harder. Simple on purpose, so it runs on any phone and keeps your eyes on the effort.</p>
+        </div>
+
+        <div class="feature">
+          <div>
+            <span class="tag" style="color: var(--z2)">3D road</span>
+            <h3>The real route, bend by bend.</h3>
+            <p>The road follows the route's map coordinates and its elevation: the hairpins of Alpe d'Huez, the
+              climbs of Il Lombardia. Your power, cadence and heart rate stay above it, the grade, elevation and
+              distance below.</p>
+            <ul class="ticks" style="--c: var(--z2)">
+              <li>Every route gets it, the ones you draw in the <a href="route-builder.html">Route Builder</a> too.
+                No route? An endless road at your speed</li>
+              <li>Hills, pines, telegraph poles, houses, factory chimneys, kilometre stones and the odd airship</li>
+              <li>See it through your own eyes, or from behind a rider who pedals at your cadence</li>
+              <li>Your speed is what your watts and your weight give on that road, not the trainer's flywheel</li>
+            </ul>
+          </div>
+          <div class="shot">
+            <div class="phone"><img src="images/phone-road.png" width="540" height="960" loading="lazy"
+                alt="3D road on Il Lombardia: a rider in blue on a winding road between hills, factory chimneys ahead, 285 W, 4.2 % grade">
+            </div>
+          </div>
+        </div>
+
+        <div class="wide">
+          <div class="text">
+            <span class="tag" style="color: var(--z6)">Pacer</span>
+            <h3>Someone to chase up the climb.</h3>
+            <p>Switch on the pacer and a rider in red sets off on the same road at a power you choose, a share of
+              your FTP or a number of watts, with a head start. It weighs what you weigh and rides the same physics,
+              so the gap is only about the watts. You see it in metres and seconds, a marker over its head even behind
+              a hill, and a note when one of you passes the other and who reached the finish first.</p>
+          </div>
+          <div class="tablet"><img src="images/tablet-road.png" width="1600" height="900" loading="lazy"
+              alt="Tablet: 3D road on Alpe d'Huez with the ride's numbers on the left and the pacer 21 m ahead, marked over its head">
+          </div>
+        </div>
+
+        <div class="wide">
+          <div class="text">
+            <span class="tag" style="color: var(--z4)">Why it looks this way</span>
+            <h3>Built for a hard hour on the trainer, not for a game console.</h3>
+            <p>Every choice in the 3D road comes from what it's for: showing you where the road goes and how hard
+              it's about to get, on a phone that's already busy talking to your trainer.</p>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <div class="bar" style="--c: var(--z2)"></div>
+              <h3>Flat shading, on purpose</h3>
+              <p>Plain polygons and distance fog, like late-1990s games with their textures off, in a warm sepia. No
+                game engine and nothing to download: the road is drawn with the same graphics as the rest of the app,
+                in a sliver of each frame, so it runs on modest phones and works offline.</p>
+            </div>
+            <div class="card">
+              <div class="bar" style="--c: var(--z6)"></div>
+              <h3>Climbs you can see coming</h3>
+              <p>A real 5 % looks flat on a screen. So the road is drawn one and a half times steeper, the view tilts
+                with the slope and the asphalt darkens the steeper it climbs: you see where the climb starts before
+                your legs do. The numbers stay true.</p>
+            </div>
+            <div class="card">
+              <div class="bar" style="--c: var(--z3)"></div>
+              <h3>A sense of speed</h3>
+              <p>Marker posts every 20 m, tufts of grass on the banks, patches in the asphalt and the centre line
+                stream past close by, so even 9 km/h up a hairpin feels like progress.</p>
+            </div>
+            <div class="card">
+              <div class="bar" style="--c: var(--z5)"></div>
+              <h3>The same road every ride</h3>
+              <p>The scenery is placed by the distance along the route, not at random. Ride a route again and the
+                chimneys and the farmhouse are where you left them, so you learn it as you would a real climb.</p>
+            </div>
+            <div class="card">
+              <div class="bar" style="--c: var(--z4)"></div>
+              <h3>Easy on the battery</h3>
+              <p>Smooth while you ride, at 60 frames a second, and nothing at all when you stop: not a frame is
+                drawn while you stand still.</p>
+            </div>
+            <div class="card">
+              <div class="bar" style="--c: var(--z7)"></div>
+              <h3>One physics for everything</h3>
+              <p>Your speed, the pacer and the trainer's resistance come from the same model of the road: the grade,
+                rolling and air resistance, your weight and your bike's. What you see is what your legs feel.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="rides" class="alt">
       <div class="wrap">
         <div class="feature flip">
           <div>
@@ -727,7 +823,7 @@
       </div>
     </section>
 
-    <section class="alt">
+    <section>
       <div class="wrap">
         <div class="section-head">
           <h2>Works with the gear you have.</h2>
@@ -756,7 +852,7 @@
       </div>
     </section>
 
-    <section id="tools">
+    <section id="tools" class="alt">
       <div class="wrap">
         <div class="section-head">
           <h2>Free tools for your rides, in the browser.</h2>
