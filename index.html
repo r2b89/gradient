@@ -91,27 +91,45 @@
       background: #fff;
     }
 
-    .soon {
+    .play {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 12px 20px;
+      padding: 10px 18px 10px 16px;
       border-radius: 10px;
-      background: var(--panel);
-      border: 1px dashed #3a4554;
-      color: var(--muted);
+      background: var(--text);
+      color: var(--bg);
+      border: 1px solid var(--text);
       font-size: 16px;
+      text-decoration: none;
+      line-height: 1.25;
     }
 
-    .soon b {
-      color: var(--text);
-      font-weight: 600;
+    .play:hover {
+      background: #fff;
     }
 
-    .soon svg {
-      width: 20px;
-      height: 20px;
+    .play svg {
+      width: 26px;
+      height: 26px;
       flex: none;
+    }
+
+    .play small {
+      display: block;
+      font-size: 12px;
+      color: #4a5563;
+    }
+
+    .play b {
+      font-weight: 700;
+    }
+
+    .beta-note {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 34em;
     }
 
     /* Hero */
@@ -570,15 +588,19 @@
             structured workouts held in ERG, rides by heart rate, and real climbs and classics with every change of
             grade.</p>
           <div class="cta">
-            <span class="soon">
+            <!-- Early access is Play's open testing. After the production release, link
+                 https://play.google.com/store/apps/details?id=app.gradientcycling and drop the label. -->
+            <a class="play" href="https://play.google.com/apps/testing/app.gradientcycling" rel="noopener">
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#2fc26b"
-                  d="M17.6 9.48l1.84-3.18a.38.38 0 00-.66-.38l-1.86 3.22A11.4 11.4 0 0012 8.1c-1.77 0-3.44.38-4.92 1.04L5.22 5.92a.38.38 0 00-.66.38L6.4 9.48A10.8 10.8 0 001 18h22a10.8 10.8 0 00-5.4-8.52zM7 15.25a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5zm10 0a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z" />
-              </svg>
-              <span><b>Coming soon</b> to Google Play</span>
-            </span>
+                  <path fill="#2fc26b"
+                    d="M17.6 9.48l1.84-3.18a.38.38 0 00-.66-.38l-1.86 3.22A11.4 11.4 0 0012 8.1c-1.77 0-3.44.38-4.92 1.04L5.22 5.92a.38.38 0 00-.66.38L6.4 9.48A10.8 10.8 0 001 18h22a10.8 10.8 0 00-5.4-8.52zM7 15.25a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5zm10 0a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z" />
+                </svg>
+              <span><small>Android · Google Play</small><b>Join early access</b></span>
+            </a>
             <a class="btn" href="#tools">Try the web tools</a>
           </div>
+          <p class="beta-note">Gradient is in early access: install it from Google Play and get every update as it comes.
+            Android 12 or later.</p>
           <ul class="promises">
             <li>No account</li>
             <li>No subscription</li>
@@ -777,7 +799,9 @@
         <p>Gradient doesn't need the internet and doesn't track you. Your rides, workouts and settings stay on your
           phone.</p>
         <div class="cta">
-          <span class="soon"><span><b>Coming soon</b> to Google Play</span></span>
+          <a class="play" href="https://play.google.com/apps/testing/app.gradientcycling" rel="noopener">
+            <span><small>Android · Google Play</small><b>Join early access</b></span>
+          </a>
           <a class="btn" href="privacy.html">Read the privacy policy</a>
         </div>
       </div>
