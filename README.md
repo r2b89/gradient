@@ -10,7 +10,8 @@ app uses. They're plain HTML files with no build step and no backend.
 
 ### Landing page (`index.html`)
 
-The home page that presents the app, with screenshots in `images/` (from the app's Play Store graphics; `phone-road.png` and `tablet-road.png`, the 3D road, are frames the trainer renders offscreen with `--raw`).
+The home page that presents the app, with screenshots in `images/` (from the app's Play Store graphics; `phone-road.png` and `tablet-road.png`, the 3D road in its 16-bit look, are frames the trainer renders offscreen with
+`--raw --page 8`, e.g. `--workout alpe-dhuez.csv --minutes 6 --size 540x960` with `camera = chase` in a `--config` file).
 The Google Play buttons go to the early access (open testing) opt-in; after the production release, point them
 at the store listing.
 Every page links `site.css`: the dark palette, the header (logo, page title, pages) and the buttons.
