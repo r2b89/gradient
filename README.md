@@ -22,7 +22,7 @@ The app itself: its C code and display compiled to WebAssembly and drawn with We
 sensors, so it needs Chrome or Edge on a computer or Chrome on Android; elsewhere (Safari, Firefox, iPhone, iPad) only
 the demo, a made-up ride, runs. Sensors are picked one by one in the browser's dialog, the page has to stay in front, and
 settings, workouts and rides live in the browser (IndexedDB): the page says so before starting. Tested with simulated
-sensors only so far.
+sensors and ridden with a real trainer; most models are untried.
 
 `ride/` is built, not written here: in the app's repository, `player/examples/trainer/web/build.sh --site <this
 folder>/ride`. Rebuild it when the app changes.
