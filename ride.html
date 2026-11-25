@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5GPN37VJY0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-5GPN37VJY0');
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="icons/site.webmanifest">
+  <meta name="theme-color" content="#0b0f14">
+  <title>Ride in the Browser: Smart Trainer App, Beta | Gradient</title>
+  <meta name="description" content="The Gradient indoor cycling app in your browser, beta: structured workouts and real routes on a Bluetooth smart trainer in Chrome or Edge, or a demo ride in any modern browser. No install, no account.">
+  <link rel="canonical" href="https://gradient.bike/ride.html">
+  <meta property="og:site_name" content="Gradient">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Ride in the Browser: Smart Trainer App, Beta">
+  <meta property="og:description" content="Connect a Bluetooth smart trainer in Chrome or Edge, or try a demo ride. No install, no account.">
+  <meta property="og:url" content="https://gradient.bike/ride.html">
+  <meta property="og:image" content="https://gradient.bike/images/social.png">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="500">
+  <meta name="twitter:card" content="summary_large_image">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { background: var(--bg); color: var(--text); font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 860px; margin: 0 auto; padding: 28px 16px 64px; }
+    h2 { font-size: 26px; line-height: 1.2; margin: 0 0 8px; }
+    h3 { font-size: 17px; margin: 0 0 6px; }
+    p { margin: 0 0 12px; }
+    a { color: var(--accent); }
+    .muted { color: var(--muted); }
+    .beta { display: inline-block; margin-bottom: 10px; padding: 2px 10px; border: 1px solid var(--z4); border-radius: 20px;
+      color: var(--z4); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+    .starts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 22px 0 10px; }
+    .start { display: flex; flex-direction: column; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+    .start p { flex: 1; color: var(--muted); }
+    .start button { font: inherit; font-weight: 700; padding: 12px 18px; cursor: pointer; border: 1px solid var(--line); color: var(--text); }
+    .start button:disabled { opacity: .45; cursor: not-allowed; }
+    #why { margin: 10px 0 0; color: var(--z4); font-size: 14px; flex: none; }
+    #why:empty { display: none; }
+    #progress { min-height: 24px; color: var(--muted); }
+    .limits { margin: 26px 0; padding: 18px 20px; border: 1px solid var(--line); border-left: 4px solid var(--z4); border-radius: 12px; background: var(--panel); }
+    .limits ul { margin: 8px 0 0; padding-left: 20px; }
+    .limits li { margin-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; margin: 6px 0 18px; font-size: 14px; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .yes { color: var(--z3); font-weight: 600; } .no { color: var(--muted); }
+    ol { padding-left: 20px; } ol li { margin-bottom: 6px; }
+
+    /* the app: over the whole page once it starts */
+    #app { position: fixed; inset: 0; z-index: 2000; display: none; background: #000;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+    body.riding { overflow: hidden; }
+    body.riding #app { display: block; }
+    #ride-canvas { display: block; width: 100%; height: 100%; touch-action: none; user-select: none; -webkit-user-select: none; outline: none; }
+    #back { position: absolute; top: calc(12px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: none; padding: 8px 16px; font: inherit; font-weight: 600;
+      color: #fff; background: rgba(11, 15, 20, .8); border: 1px solid var(--line-hover); border-radius: 20px; cursor: pointer; }
+    #toast { position: absolute; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: max-content; max-width: min(90%, 520px); padding: 10px 16px; border-radius: 10px;
+      background: rgba(24, 32, 43, .96); border: 1px solid var(--line-hover); color: var(--text); opacity: 0; pointer-events: none; transition: opacity .2s; }
+    #toast.on { opacity: 1; }
+    dialog#menu { width: min(340px, 92vw); max-height: 88vh; padding: 8px; border: 1px solid var(--line-hover); border-radius: 14px; background: var(--panel); color: var(--text); overflow: auto; }
+    dialog#menu::backdrop { background: rgba(0, 0, 0, .55); }
+    dialog#menu button { display: flex; justify-content: space-between; width: 100%; padding: 11px 12px; font: inherit; text-align: left; border: 0; border-radius: 8px; background: none; color: var(--text); cursor: pointer; }
+    dialog#menu button:hover, dialog#menu button:focus-visible { background: var(--panel-2); }
+    dialog#menu hr { border: 0; border-top: 1px solid var(--line); margin: 6px 0; }
+    dialog#menu kbd { color: var(--muted); font: 13px ui-monospace, monospace; }
+    dialog#menu [data-status] { padding: 6px 12px 10px; color: var(--muted); font-size: 13px; }
+    @media (max-width: 680px) { .starts { grid-template-columns: 1fr; } }
+    @media (hover: none) { dialog#menu kbd { display: none; } }
+  </style>
+  <link rel="stylesheet" href="site.css">
+</head>
+
+<body>
+  <header class="top">
+    <div class="bar">
+      <a class="brand" href="./"><img src="icons/icon.svg" alt="" width="32" height="32">Gradient</a>
+      <h1>Ride in the browser</h1>
+      <nav aria-label="Pages">
+        <a href="ride.html" aria-current="page">Ride</a>
+        <a href="route-builder.html">Routes</a>
+        <a href="workout-builder.html">Workouts</a>
+        <a href="rides.html">Rides</a>
+        <a href="feedback.html">Feedback</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <span class="beta">BETA</span>
+    <h2>Gradient, without installing anything.</h2>
+    <p>The same app as on the phone, running in this page: workouts in ERG, real routes, the 16-bit road and the recording
+      of your ride. Connect a Bluetooth trainer in Chrome or Edge, or look around with a made-up ride in any modern
+      browser.</p>
+
+    <div class="starts">
+      <div class="start">
+        <h3>Ride with your trainer</h3>
+        <p>Pick your trainer and sensors one by one, choose a workout or a route, and ride.</p>
+        <button class="primary" id="start-ride" type="button">Start</button>
+        <p id="why" role="note"></p>
+      </div>
+      <div class="start">
+        <h3>Try the demo</h3>
+        <p>A made-up rider climbs Alpe d'Huez. Nothing to connect, nothing is kept.</p>
+        <button id="start-demo" type="button">Start the demo</button>
+      </div>
+    </div>
+    <p id="progress" role="status">About 8 MB to load when you start.</p>
+
+    <section class="limits" aria-labelledby="limits-title">
+      <h3 id="limits-title">Know before you ride</h3>
+      <ul>
+        <li><b>Chrome or Edge only for sensors.</b> Bluetooth works in Chrome and Edge on computers and in Chrome on
+          Android. Safari, Firefox and every browser on iPhone and iPad can't connect sensors: there you can only run the
+          demo.</li>
+        <li><b>You pick each sensor yourself.</b> Tap SCAN on the sensors page and choose one in the browser's dialog, then
+          again for the next. After a reload most browsers ask again.</li>
+        <li><b>Keep this page in front.</b> A phone that locks or switches apps can pause the page, and with it the
+          trainer's targets and the recording. The screen is kept on where the browser allows it.</li>
+        <li><b>Your data lives in this browser.</b> Settings, workouts and rides are kept here, not on a server. Clearing
+          site data removes them, so download the rides you want to keep (☰ → Download rides, or the share button in My
+          rides).</li>
+        <li><b>Beta, and new.</b> So far it has been tested with simulated sensors only, not with real trainers. If yours
+          misbehaves, stop pedalling, close the page and <a href="feedback.html">tell us</a>. The
+          <a href="./">Android app</a> is the better choice for a session that matters.</li>
+      </ul>
+    </section>
+
+    <h3>What works where</h3>
+    <table>
+      <thead><tr><th>Browser</th><th>Bluetooth sensors</th><th>Demo</th></tr></thead>
+      <tbody>
+        <tr><td>Chrome, Edge (Windows, macOS, ChromeOS)</td><td class="yes">Available</td><td class="yes">Yes</td></tr>
+        <tr><td>Chrome (Android)</td><td class="yes">Available</td><td class="yes">Yes</td></tr>
+        <tr><td>Chrome, Edge (Linux)</td><td>Needs a browser flag</td><td class="yes">Yes</td></tr>
+        <tr><td>Safari, Firefox; any browser on iPhone and iPad</td><td class="no">No Bluetooth</td><td class="yes">Yes</td></tr>
+      </tbody>
+    </table>
+
+    <h3>How to start</h3>
+    <ol>
+      <li>Wake your trainer and sensors, and close other apps connected to them.</li>
+      <li>Press Start, enter your FTP and weight, then open Settings → Sensors and tap SCAN for each one.</li>
+      <li>Pick a workout or route. Ones made in the <a href="workout-builder.html">Workout Builder</a> and the
+        <a href="route-builder.html">Route Builder</a> can be dropped on the page or added with + ADD.</li>
+      <li>☰ (or M, or a long press) has the next step, harder and easier, finishing the ride and leaving.</li>
+    </ol>
+    <p class="muted">Trainers with Bluetooth FTMS, and Tacx trainers on older firmware (FE-C over Bluetooth). Text is drawn in
+      Liberation Sans (<a href="ride/LICENSE-Liberation.txt">licence</a>).</p>
+  </main>
+
+  <div id="app">
+    <canvas id="ride-canvas" tabindex="0" aria-label="The Gradient app"></canvas>
+    <button id="back" type="button">Back to the pages</button>
+    <div id="toast" role="status"></div>
+    <dialog id="menu" aria-label="Menu"></dialog>
+  </div>
+
+  <script src="ride/trainer-ble.js"></script>
+  <script src="ride/trainer-web.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    let app = null, status = '', fullRoad = false, toastTimer = 0;
+
+    // what this browser can do
+    const missing = !window.isSecureContext ? 'Bluetooth needs a secure (https) page.'
+      : !navigator.bluetooth ? "This browser can't connect Bluetooth sensors: use Chrome or Edge on a computer, or Chrome on Android. The demo works here."
+      : '';
+    if (missing) {
+      $('start-ride').disabled = true;
+      $('why').textContent = missing;
+    } else if (navigator.bluetooth.getAvailability) {
+      navigator.bluetooth.getAvailability().then(on => {
+        if (!on) $('why').textContent = 'No Bluetooth adapter is on: switch Bluetooth on before you start.';
+      }).catch(() => {});
+    }
+
+    function toast(text) {
+      $('toast').textContent = text;
+      $('toast').classList.add('on');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => $('toast').classList.remove('on'), 5000);
+    }
+
+    async function start(demo) {
+      $('start-ride').disabled = $('start-demo').disabled = true;
+      $('progress').textContent = 'Loading…';
+      try {
+        document.body.classList.add('riding'); // the canvas needs its size
+        app = await GradientTrainer.start({canvas: $('ride-canvas'), base: 'ride/', demo,
+          onMenu: () => showMenu(demo), onToast: toast, onStatus: line => { status = line; },
+          onProgress: line => { if (line) toast(line.replace('Downloading data...', 'Loading')); }});
+        $('ride-canvas').focus();
+        $('progress').textContent = '';
+        $('toast').classList.remove('on');
+        if (!demo) toast('To connect a sensor: Settings → Sensors → SCAN, once for each.');
+      } catch (error) {
+        document.body.classList.remove('riding');
+        $('start-demo').disabled = false;
+        $('start-ride').disabled = !!missing;
+        $('progress').textContent = `The app can't start: ${error.message}`;
+      }
+    }
+    window.addEventListener('keydown', event => { // V switches it too
+      if (app && event.key.toLowerCase() === 'v' && !$('menu').open && !event.ctrlKey && !event.metaKey) setFullRoad(!fullRoad);
+    });
+    $('start-ride').addEventListener('click', () => start(false));
+    $('start-demo').addEventListener('click', () => start(true));
+
+    function setFullRoad(on) {
+      fullRoad = on;
+      $('back').style.display = on ? 'block' : 'none';
+    }
+    $('back').addEventListener('click', () => { app.run('view3d'); setFullRoad(false); });
+
+    function showMenu(demo) {
+      const menu = $('menu');
+      if (menu.open || !app) return;
+      menu.replaceChildren();
+      const line = document.createElement('div');
+      line.dataset.status = '';
+      line.textContent = status || 'Gradient in the browser, beta';
+      menu.append(line);
+      const item = (label, key, action) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.append(label);
+        if (key) { const k = document.createElement('kbd'); k.textContent = key; b.append(k); }
+        b.addEventListener('click', () => { menu.close(); action(); }); // still the tap: the Bluetooth dialog may open
+        menu.append(b);
+      };
+      const rule = () => menu.append(document.createElement('hr'));
+      const run = command => () => app.run(command);
+      if (!demo) item('Connect a sensor…', 'S', () => app.connect());
+      item('Next step', 'N', run('nextStep'));
+      item('Harder', '+', run('harder'));
+      item('Easier', '−', run('easier'));
+      rule();
+      item('3D road, whole window', '', () => { app.run('view3d'); setFullRoad(true); });
+      item('View: eyes / behind', 'C', run('camera'));
+      item('Pacer on / off', 'P', run('pacer'));
+      item('Pacer harder', ']', run('pacerHarder'));
+      item('Pacer easier', '[', run('pacerEasier'));
+      rule();
+      item('Add workouts or routes…', '', () => app.chooseFiles());
+      item('Download rides', '', () => {
+        const rides = app.rides();
+        if (!rides.length) toast('No saved rides yet.');
+        rides.forEach((path, i) => setTimeout(() => app.download(path), i * 400));
+      });
+      if (document.fullscreenEnabled) item('Full screen', '', () => (document.fullscreenElement ? document.exitFullscreen() : $('app').requestFullscreen()));
+      rule();
+      item('Finish ride (save, new ride)', 'R', run('newRide'));
+      item('Stop training (save, no workout)', '', run('stop'));
+      item('Leave', '', async () => { await app.close(); location.reload(); });
+      menu.showModal();
+    }
+    $('menu').addEventListener('click', event => { if (event.target === $('menu')) $('menu').close(); });
+    $('menu').addEventListener('close', () => $('ride-canvas').focus());
+  </script>
+</body>
+
+</html>

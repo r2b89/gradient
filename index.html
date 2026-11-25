@@ -388,6 +388,17 @@
       gap: 20px;
     }
 
+    .grid.tools {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid.tools small {
+      color: var(--z4);
+      font-size: .7em;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+
     .card {
       background: var(--bg);
       border: 1px solid var(--line);
@@ -557,7 +568,8 @@
         width: 210px;
       }
 
-      .grid {
+      .grid,
+      .grid.tools {
         grid-template-columns: 1fr;
       }
 
@@ -894,10 +906,17 @@
       <div class="wrap">
         <div class="section-head">
           <h2>Free tools for your rides, in the browser.</h2>
-          <p>Make routes and workouts for the app, and look back at what you rode. No account, nothing to install, and
-            your files stay in your browser.</p>
+          <p>Try the app in a page, make routes and workouts for it, and look back at what you rode. No account, nothing
+            to install, and your files stay in your browser.</p>
         </div>
-        <div class="grid">
+        <div class="grid tools">
+          <a class="card" href="ride.html">
+            <div class="bar" style="--c: var(--z2)"></div>
+            <h3>Ride in the browser <small>beta</small></h3>
+            <p>The app itself, in a page: connect a Bluetooth trainer in Chrome or Edge (not on iPhone, iPad, Safari or
+              Firefox), or try a demo ride on Alpe d'Huez in any modern browser.</p>
+            <span class="go">Try it →</span>
+          </a>
           <a class="card" href="route-builder.html">
             <div class="bar" style="--c: var(--z3)"></div>
             <h3>Route Builder</h3>
@@ -942,6 +961,7 @@
   <footer>
     <div class="wrap">
       <nav aria-label="Site">
+        <a href="ride.html">Ride in the browser</a>
         <a href="route-builder.html">Route Builder</a>
         <a href="workout-builder.html">Workout Builder</a>
         <a href="rides.html">Rides</a>
