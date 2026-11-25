@@ -18,7 +18,7 @@
   <link rel="manifest" href="icons/site.webmanifest">
   <meta name="theme-color" content="#0b0f14">
   <title>Gradient: indoor cycling app for smart trainers</title>
-  <meta name="description" content="Gradient is an indoor cycling app for Android. Structured workouts in ERG mode, heart rate training and real routes on your smart trainer. Rides saved as FIT files. No account, no subscription, no ads.">
+  <meta name="description" content="Gradient is an indoor cycling app for Android, and in your browser (beta). Structured workouts in ERG mode, heart rate training and real routes on your smart trainer. Rides saved as FIT files. No account, no subscription, no ads.">
   <link rel="canonical" href="https://gradient.bike/">
   <meta property="og:site_name" content="Gradient">
   <meta property="og:type" content="website">
@@ -31,6 +31,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "Gradient", "url": "https://gradient.bike/"}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "MobileApplication", "name": "Gradient – Indoor Cycling", "operatingSystem": "Android 12 or later", "applicationCategory": "HealthApplication", "description": "Indoor cycling with your smart trainer: structured workouts in ERG mode, heart rate training and real routes. Rides saved as FIT files.", "url": "https://gradient.bike/", "image": "https://gradient.bike/images/social.png"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Gradient in the browser (beta)", "url": "https://gradient.bike/ride.html", "applicationCategory": "HealthApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "WebGL 2. Bluetooth sensors need Chrome or Edge on a computer, or Chrome on Android", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script>
   <style>
     * {
       box-sizing: border-box;
@@ -80,6 +81,12 @@
       text-decoration: none;
       border: 1px solid var(--line);
       background: var(--panel-2);
+    }
+
+    .btn small {
+      color: var(--z4);
+      font-size: 12px;
+      font-weight: 700;
     }
 
     .btn:hover {
@@ -616,6 +623,7 @@
         <a href="#routes">Routes</a>
         <a href="#road">3D road</a>
         <a href="#rides">Your rides</a>
+        <a href="#browser">Browser</a>
         <a href="#tools">Web tools</a>
       </nav>
     </div>
@@ -625,7 +633,7 @@
     <div class="hero">
       <div class="wrap">
         <div>
-          <p class="eyebrow">Indoor cycling for Android</p>
+          <p class="eyebrow">Indoor cycling for Android and your browser</p>
           <h1>Ride the plan.<br><span>The trainer does the shifting.</span></h1>
           <p class="lead">Gradient connects to your smart trainer over Bluetooth and sets the resistance for you:
             structured workouts held in ERG, rides by heart rate, and real climbs and classics with every change of
@@ -640,10 +648,10 @@
                 </svg>
               <span><small>Android · Google Play</small><b>Join early access</b></span>
             </a>
-            <a class="btn" href="#tools">Try the web tools</a>
+            <a class="btn" href="ride.html">Ride in the browser <small>beta</small></a>
           </div>
           <p class="beta-note">Gradient is in early access: install it from Google Play and get every update as it comes.
-            Android 12 or later. Tried it? <a href="feedback.html">Tell us what to build next</a>.</p>
+            Android 12 or later. No Android? <a href="#browser">Ride in Chrome or Edge</a>, or try the demo there. Tried it? <a href="feedback.html">Tell us what to build next</a>.</p>
           <ul class="promises">
             <li>No account</li>
             <li>No subscription</li>
@@ -873,12 +881,36 @@
       </div>
     </section>
 
-    <section>
+    <section id="browser">
+      <div class="wrap">
+        <div class="wide" style="margin-top: 0">
+          <div class="text">
+            <span class="tag" style="color: var(--z2)">In the browser · beta</span>
+            <h3>The same app, in a page. Nothing to install.</h3>
+            <p>Open Gradient in Chrome or Edge, connect your Bluetooth trainer and sensors, and ride: workouts in ERG, real
+              routes, the 16-bit road, and your ride saved as a FIT file. Just looking? The demo climbs Alpe d'Huez with a
+              made-up rider in any modern browser, with nothing to connect.</p>
+            <ul class="ticks" style="--c: var(--z2)">
+              <li>Your trainer and sensors: Chrome and Edge on Windows, macOS and ChromeOS, and Chrome on Android</li>
+              <li>Demo only: Safari, Firefox, and every browser on iPhone and iPad, which can't connect Bluetooth sensors</li>
+              <li>Workouts and routes from the web tools open in it, and settings and rides stay in that browser</li>
+              <li>Keep the page in front while you ride, and download the rides you want to keep</li>
+            </ul>
+            <p style="margin: 24px 0 0"><a class="btn primary" href="ride.html">Ride in the browser</a></p>
+          </div>
+          <div class="tablet"><img src="images/browser-road.png" width="1600" height="900" loading="lazy"
+              alt="Gradient in a browser window: the 16-bit road up Alpe d'Huez with power, cadence, heart rate, speed and ride time beside it">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="alt">
       <div class="wrap">
         <div class="section-head">
           <h2>Works with the gear you have.</h2>
-          <p>Standard Bluetooth profiles, so it isn't tied to one brand. Your sensors are remembered and connected
-            again when you start.</p>
+          <p>Standard Bluetooth profiles, so it isn't tied to one brand. The Android app remembers your sensors and
+            connects them again when you start; in the browser you pick them yourself.</p>
         </div>
         <div class="grid">
           <div class="card">
@@ -902,7 +934,7 @@
       </div>
     </section>
 
-    <section id="tools" class="alt">
+    <section id="tools">
       <div class="wrap">
         <div class="section-head">
           <h2>Free tools for your rides, in the browser.</h2>
@@ -946,12 +978,13 @@
     <section class="closing">
       <div class="wrap">
         <h2>No account. No subscription. No ads.</h2>
-        <p>Gradient doesn't need the internet and doesn't track you. Your rides, workouts and settings stay on your
-          phone.</p>
+        <p>The app doesn't need the internet and doesn't track you. Your rides, workouts and settings stay on your
+          phone, or in your browser if you ride there.</p>
         <div class="cta">
           <a class="play" href="https://play.google.com/apps/testing/app.gradientcycling" rel="noopener">
             <span><small>Android · Google Play</small><b>Join early access</b></span>
           </a>
+          <a class="btn" href="ride.html">Ride in the browser <small>beta</small></a>
           <a class="btn" href="privacy.html">Read the privacy policy</a>
         </div>
       </div>
