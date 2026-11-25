@@ -41,6 +41,8 @@
     .muted { color: var(--muted); }
     .beta { display: inline-block; margin-bottom: 10px; padding: 2px 10px; border: 1px solid var(--z4); border-radius: 20px;
       color: var(--z4); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+    .start.wide { grid-column: 1 / -1; border-left: 4px solid var(--z6, #ef3b36); }
+    .new { font-size: 11px; color: var(--z6, #ef3b36); letter-spacing: .06em; }
     .starts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 22px 0 10px; }
     .start { display: flex; flex-direction: column; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
     .start p { flex: 1; color: var(--muted); }
@@ -74,6 +76,7 @@
     dialog#menu button:hover, dialog#menu button:focus-visible { background: var(--panel-2); }
     dialog#menu hr { border: 0; border-top: 1px solid var(--line); margin: 6px 0; }
     dialog#menu kbd { color: var(--muted); font: 13px ui-monospace, monospace; }
+    dialog#menu table { font-size: 13px; } dialog#menu h3 { margin: 10px 12px 2px; } dialog#menu p { margin: 8px 12px; }
     dialog#menu [data-status] { padding: 6px 12px 10px; color: var(--muted); font-size: 13px; }
     @media (max-width: 680px) { .starts { grid-template-columns: 1fr; } }
     @media (hover: none) { dialog#menu kbd { display: none; } }
@@ -115,6 +118,13 @@
         <h3>Try the demo</h3>
         <p>A made-up rider climbs Alpe d'Huez. Nothing to connect, nothing is kept.</p>
         <button id="start-demo" type="button">Start the demo</button>
+      </div>
+      <div class="start wide">
+        <h3>Arcade mode <span class="new">NEW</span></h3>
+        <p>You bought a new bike. Your wife (or girlfriend) found the receipt, and she is somewhere behind you. Watch the
+          mirror: on routes push a little harder than usual to get away, in workouts hold your target watts. The clock counts
+          how long she rides with you. With 8-bit music. Switch it on with ARCADE on the 3D road or a workout's page, or from ☰. Dark pictures and scary sounds.</p>
+        <button id="start-arcade" type="button">Start the arcade demo</button>
       </div>
     </div>
     <p id="progress" role="status">About 8 MB to load when you start.</p>
@@ -169,6 +179,7 @@
   </div>
 
   <script src="ride/trainer-ble.js"></script>
+  <script src="ride/arcade-music.js"></script>
   <script src="ride/trainer-web.js"></script>
   <script>
     const $ = id => document.getElementById(id);
@@ -194,12 +205,12 @@
       toastTimer = setTimeout(() => $('toast').classList.remove('on'), 5000);
     }
 
-    async function start(demo) {
-      $('start-ride').disabled = $('start-demo').disabled = true;
+    async function start(demo, arcade = false) {
+      $('start-ride').disabled = $('start-demo').disabled = $('start-arcade').disabled = true;
       $('progress').textContent = 'Loading…';
       try {
         document.body.classList.add('riding'); // the canvas needs its size
-        app = await GradientTrainer.start({canvas: $('ride-canvas'), base: 'ride/', demo,
+        app = await GradientTrainer.start({canvas: $('ride-canvas'), base: 'ride/', demo, arcade,
           onMenu: () => showMenu(demo), onToast: toast, onStatus: line => { status = line; },
           onProgress: line => { if (line) toast(line.replace('Downloading data...', 'Loading')); }});
         $('ride-canvas').focus();
@@ -208,7 +219,7 @@
         if (!demo) toast('To connect a sensor: Settings → Sensors → SCAN, once for each.');
       } catch (error) {
         document.body.classList.remove('riding');
-        $('start-demo').disabled = false;
+        $('start-demo').disabled = $('start-arcade').disabled = false;
         $('start-ride').disabled = !!missing;
         $('progress').textContent = `The app can't start: ${error.message}`;
       }
@@ -218,6 +229,7 @@
     });
     $('start-ride').addEventListener('click', () => start(false));
     $('start-demo').addEventListener('click', () => start(true));
+    $('start-arcade').addEventListener('click', () => start(true, true));
 
     function setFullRoad(on) {
       fullRoad = on;
@@ -254,6 +266,11 @@
       item('Pacer harder', ']', run('pacerHarder'));
       item('Pacer easier', '[', run('pacerEasier'));
       rule();
+      item('Arcade mode on / off', 'A', run('arcade'));
+      item('Chaser: wife / girlfriend', '', run('chaser'));
+      item(app.arcadeMuted() ? 'Arcade music on' : 'Arcade music off', '', () => toast(app.muteArcade() ? 'Arcade music off' : 'Arcade music on'));
+      if (!demo) item('Arcade results…', '', showResults);
+      rule();
       item('Add workouts or routes…', '', () => app.chooseFiles());
       item('Download rides', '', () => {
         const rides = app.rides();
@@ -265,6 +282,38 @@
       item('Finish ride (save, new ride)', 'R', run('newRide'));
       item('Stop training (save, no workout)', '', run('stop'));
       item('Leave', '', async () => { await app.close(); location.reload(); });
+      menu.showModal();
+    }
+    function showResults() {
+      const menu = $('menu'), clock = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      const rides = app.arcadeRides();
+      menu.replaceChildren();
+      const title = document.createElement('h3');
+      title.textContent = 'Arcade results';
+      menu.append(title);
+      if (rides.length) {
+        const table = document.createElement('table');
+        const row = (cells, tag) => {
+          const tr = document.createElement('tr');
+          for (const text of cells) { const cell = document.createElement(tag); cell.textContent = text; tr.append(cell); }
+          table.append(tr);
+        };
+        row(['Ride', 'With you', 'Free', 'Caught', 'Away'], 'th');
+        for (const r of rides.slice(0, 30)) {
+          row([`${r.ride} · ${r.date.slice(0, 10)}`, `${clock(r.withYou)} of ${clock(r.seconds)}`, `${Math.floor(100 * (r.seconds - r.withYou) / r.seconds)} %`,
+            r.caught, r.lost + r.shaken], 'td');
+        }
+        menu.append(table);
+      } else {
+        const none = document.createElement('p');
+        none.textContent = 'No rides with the arcade mode yet. A ride is kept once it is finished (a minute or more).';
+        menu.append(none);
+      }
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.textContent = 'Close';
+      close.addEventListener('click', () => menu.close());
+      menu.append(close);
       menu.showModal();
     }
     $('menu').addEventListener('click', event => { if (event.target === $('menu')) $('menu').close(); });

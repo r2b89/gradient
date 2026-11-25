@@ -3,12 +3,13 @@
  * trainer.js (WebAssembly), opens the core and runs it in the canvas: frames on change, touches, keys, the ☰ menu, files
  * and the browser's storage. See README.md.
  *   demo      the made-up ride (no Bluetooth), kept in memory only; else Web Bluetooth, kept in IndexedDB
+ *   arcade    the demo with the arcade mode on (../c/arcade.h; arcade-music.js is its music)
  *   onMenu    ☰ or a long press: the page shows its menu (run(command), see COMMANDS)
  *   onToast   a line for the rider; onStatus: the sensors' state as a line
  */
 (function () {
   const COMMANDS = {nextPage: 0, previousPage: 1, scan: 2, newRide: 3, nextStep: 4, harder: 5, easier: 6, stop: 7, view3d: 8,
-    camera: 9, pacer: 10, pacerHarder: 11, pacerEasier: 12}; // trainer_core.h's trainer_command
+    camera: 9, pacer: 10, pacerHarder: 11, pacerEasier: 12, arcade: 13, chaser: 14}; // trainer_core.h's trainer_command
   const DOWN = 0, UP = 1, CANCEL = 2, MOVE = 3;
   const SAVE_MS = 10000, LONG_PRESS_MS = 650, FLING_PX = 60, SLOW_PX = 10;
 
@@ -20,9 +21,9 @@
     document.head.appendChild(s);
   });
 
-  async function start({canvas, base = '', demo = false, onMenu = () => {}, onToast = () => {}, onStatus = () => {}, onProgress = () => {}}) {
+  async function start({canvas, base = '', demo = false, arcade = false, onMenu = () => {}, onToast = () => {}, onStatus = () => {}, onProgress = () => {}}) {
     await script(`${base}trainer.js`);
-    let audio = null, dirty = true, closed = false, next = 0, frame = 0, timer = 0;
+    let audio = null, music = null, dirty = true, closed = false, next = 0, frame = 0, timer = 0;
     const lines = [];
 
     const module = await window.createTrainer({
@@ -35,7 +36,8 @@
       onMenu: () => onMenu(),
       onAdd: () => chooseFiles(),
       onShare: path => download(path),
-      onBeep: () => beep()
+      onBeep: () => beep(),
+      onArcade: (phase, fear, event, moving) => arcadeMusic(phase, fear, event, !!moving)
     });
     if (!demo) module.ble = new window.TrainerBle(module, navigator.bluetooth);
     const text = (string, call) => {
@@ -68,7 +70,7 @@
 
     // ---- the core
     if (!text('#' + canvas.id, at => module._web_graphics(at))) throw new Error('This browser has no WebGL 2, which draws the app.');
-    const args = demo ? '--simulate --workout /examples/routes/alpe-dhuez.csv' : '';
+    const args = demo ? `--simulate ${arcade ? '--arcade ' : ''}--workout /examples/routes/alpe-dhuez.csv` : '';
     const reason = text(args, a => text(folder, f => words(module._web_open(a, f))));
     if (reason) throw new Error(reason);
     if (demo) module._web_show_page(8); // the 3D road
@@ -168,7 +170,7 @@
 
     // ---- keys, as the desktop's
     const KEYS = {Tab: 'nextPage', ArrowRight: 'nextPage', ArrowDown: 'nextPage', ArrowLeft: 'previousPage', ArrowUp: 'previousPage',
-      s: 'scan', r: 'newRide', n: 'nextStep', v: 'view3d', c: 'camera', p: 'pacer', ']': 'pacerHarder', '[': 'pacerEasier',
+      s: 'scan', r: 'newRide', n: 'nextStep', v: 'view3d', c: 'camera', p: 'pacer', a: 'arcade', ']': 'pacerHarder', '[': 'pacerEasier',
       '=': 'harder', '+': 'harder', '-': 'easier'};
     window.addEventListener('keydown', event => {
       if (closed || event.ctrlKey || event.metaKey || event.altKey || event.target.closest('button, input, dialog[open]')) return;
@@ -232,9 +234,31 @@
     };
 
     // ---- sound and the screen: the page was opened with a tap, so both are allowed
+    const sound = () => (audio = audio || new AudioContext());
+    const MUTED = 'gradient-arcade-muted';
+    let muted = false;
+    try { muted = localStorage.getItem(MUTED) === '1'; } catch (error) { /* not kept */ }
+    function arcadeMusic(phase, fear, event, moving) {
+      if (!window.ArcadeMusic || (!music && !phase)) return;
+      try {
+        if (!music) {
+          music = new window.ArcadeMusic(sound());
+          music.muted = muted;
+        }
+        music.set({phase, fear, event, moving});
+      } catch (error) { /* silent */ }
+    }
+    function muteArcade() {
+      muted = !muted;
+      try { localStorage.setItem(MUTED, muted ? '1' : '0'); } catch (error) { /* not kept */ }
+      if (music) music.mute(muted);
+      return muted;
+    }
+    // a browser that wants a tap before any sound
+    for (const kind of ['pointerdown', 'keydown']) window.addEventListener(kind, () => { if (audio && audio.state === 'suspended') audio.resume(); });
     function beep() {
       try {
-        audio = audio || new AudioContext();
+        sound();
         const tone = audio.createOscillator(), volume = audio.createGain();
         tone.frequency.value = 880;
         volume.gain.setValueAtTime(0.25, audio.currentTime);
@@ -280,11 +304,26 @@
 
     return {
       module, run, chooseFiles, rides, download, takeFiles,
+      muteArcade, arcadeMuted: () => muted, music: () => music,
+      // the rides with the arcade mode so far, the last one first
+      arcadeRides() {
+        try {
+          return FS.readFile(`${folder}/arcade.csv`, {encoding: 'utf8'}).trim().split('\n').slice(1).reverse().map(line => {
+            const [date, ride, ...n] = line.split(',');
+            const [seconds, withYou, longest, caught, lost, shaken] = n.map(Number);
+            return {date, ride, seconds, withYou, longest, caught, lost, shaken};
+          });
+        } catch (error) {
+          return [];
+        }
+      },
       connect: () => module.ble && module.ble.scan(),
       async close() {
+        module._web_arcade_end();
         module._web_save_ride();
         await store();
         closed = true;
+        if (music) music.set({phase: 0});
         clearInterval(saver);
         ticker.terminate();
         if (lock) lock.release().catch(() => {});
