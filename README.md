@@ -1,6 +1,6 @@
 # Gradient
 
-Gradient is an indoor cycling app for Android(upcomming). It talks to your smart trainer
+Gradient is an indoor cycling app for Android ([Google Play](https://play.google.com/store/apps/details?id=app.gradientcycling)). It talks to your smart trainer
 and sensors over Bluetooth, sets the resistance for workouts and routes, and records your rides.
 
 This repo is the web side of it: a few small tools that run in the browser and make the files the
@@ -12,8 +12,7 @@ app uses. They're plain HTML files with no build step and no backend.
 
 The home page that presents the app, with screenshots in `images/` (from the app's Play Store graphics; `phone-road.png` and `tablet-road.png`, the 3D road in its 16-bit look, are frames the trainer renders offscreen with
 `--raw --page 8`, e.g. `--workout alpe-dhuez.csv --minutes 6 --size 540x960` with `camera = chase` in a `--config` file; `browser-road.png` is the demo of `ride.html` in a 1600 x 900 window).
-The Google Play buttons go to the early access (open testing) opt-in; after the production release, point them
-at the store listing.
+The Google Play buttons go to the store listing.
 Every page links `site.css`: the dark palette, the header (logo, page title, pages) and the buttons.
 
 ### Ride in the browser, beta (`ride.html`, `ride/`)
